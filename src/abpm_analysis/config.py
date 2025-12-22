@@ -43,19 +43,19 @@ class Config:
     # Input file names
     MONITORING_FILE: str = "monitoring_data.csv"
     AGGREGATED_FILE: str = "aggregated_data.csv"
-    AGGREGATED_CLF_FILE: str = "aggregated_data_clf.xlsx"
-    
+    AGGREGATED_CLF_FILE: str = "aggregated_data_clf.csv"
+
     # Output file names
-    TABLE1_OUTPUT: str = "table1_final.csv"
     SUBJECT_METRICS_OUTPUT: str = "per_subject_metrics.csv"
     SUMMARY_OUTPUT: str = "results_summary.txt"
     CROSS_CONDITION_OUTPUT: str = "cross_condition_analysis.txt"
     PAIRWISE_OUTPUT: str = "pairwise_tests.txt"
-    
+    DEMOGRAPHICS_FIGURE: str = "demographics.png"
+
     # Figure file names
-    FIGURE_2_OUTPUT: str = "figure_2_dotplots.png"
-    FIGURE_3_OUTPUT: str = "figure_3_obs_vs_pred.png"
-    FIGURE_4_OUTPUT: str = "figure_4_timeseries_residuals.png"
+    FIGURE_2_OUTPUT: str = "dotplots.png"
+    FIGURE_3_OUTPUT: str = "obs_vs_pred.png"
+    FIGURE_4_OUTPUT: str = "timeseries_residuals.png"
     
     # Figure settings
     FIGURE_DPI: int = 400
@@ -84,7 +84,6 @@ class Columns:
     SBP = "SBP"
     DBP = "DBP"
     HR = "HR"
-    PP = "PP"
     
     # Context indicators
     STATE = "state"

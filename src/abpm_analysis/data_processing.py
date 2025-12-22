@@ -168,9 +168,6 @@ class DataLoader:
         # Drop rows with missing hemodynamic values
         df = df.dropna(subset=[Columns.SBP, Columns.DBP, Columns.HR])
         
-        # Calculate pulse pressure
-        df[Columns.PP] = df[Columns.SBP] - df[Columns.DBP]
-        
         # Apply hierarchical labeling
         print("Applying hierarchical labeling...")
         df[Columns.LABEL] = df.apply(Labeler.apply_hierarchy, axis=1)
@@ -208,7 +205,7 @@ class DataLoader:
         
         try:
             print(f"Loading classifier data from {filepath}...")
-            df = pd.read_excel(filepath)
+            df = pd.read_csv(filepath)
             print(f"Loaded classifier data: {len(df)} subjects")
             return df
         except FileNotFoundError:

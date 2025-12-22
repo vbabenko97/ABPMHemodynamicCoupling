@@ -2,7 +2,7 @@
 Feature Engineering
 ====================
 
-Feature extraction for DBP and PP prediction models.
+Feature extraction for DBP prediction models.
 """
 
 from abc import ABC, abstractmethod
@@ -89,38 +89,3 @@ class DBPFeatureExtractor(FeatureExtractor):
         """Get DBP feature names."""
         return ["SBP", "HR", "1/SBP", "1/HR", "SBP*HR", "1/(SBP*HR)"]
 
-
-class PPFeatureExtractor(FeatureExtractor):
-    """
-    Pulse Pressure (PP) feature extractor.
-    
-    Generates 4D feature space for PP prediction from HR only:
-    - f1: HR
-    - f2: 1/HR
-    - f3: HR^2
-    - f4: log(HR)
-    """
-    
-    def extract(self, df: pd.DataFrame) -> np.ndarray:
-        """
-        Extract PP features.
-        
-        Args:
-            df: DataFrame with HR column
-            
-        Returns:
-            Feature matrix (n_samples, 4)
-        """
-        hr = df[Columns.HR].values.astype(float)
-        epsilon = self.config.EPSILON
-        
-        f1 = hr
-        f2 = 1.0 / (hr + epsilon)
-        f3 = hr ** 2
-        f4 = np.log(hr + epsilon)
-        
-        return np.column_stack([f1, f2, f3, f4])
-    
-    def get_feature_names(self) -> list:
-        """Get PP feature names."""
-        return ["HR", "1/HR", "HR^2", "log(HR)"]
