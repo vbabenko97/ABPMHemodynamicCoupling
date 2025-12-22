@@ -60,13 +60,6 @@ class SubjectResult:
     dbp_physical_task: Optional[ConditionMetrics] = None
     dbp_air_alert: Optional[ConditionMetrics] = None
     
-    # PP modeling
-    pp_winner: Optional[str] = None
-    pp_ref_mae: Optional[float] = None
-    pp_cognitive_task: Optional[ConditionMetrics] = None
-    pp_physical_task: Optional[ConditionMetrics] = None
-    pp_air_alert: Optional[ConditionMetrics] = None
-    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to flat dictionary for DataFrame creation."""
         result = {
@@ -92,27 +85,6 @@ class SubjectResult:
                 result[f"DBP_{cond_name}_MAE"] = np.nan
                 result[f"DBP_{cond_name}_DeltaBias"] = np.nan
                 result[f"DBP_{cond_name}_Anomaly"] = np.nan
-        
-        # Add PP metrics if available
-        if self.pp_winner:
-            result["PP_Winner"] = self.pp_winner
-            result["PP_Ref_MAE"] = self.pp_ref_mae
-            
-            for cond_name, cond_metrics in [
-                ("Cognitive Task", self.pp_cognitive_task),
-                ("Physical Task", self.pp_physical_task),
-                ("Air Alert", self.pp_air_alert),
-            ]:
-                if cond_metrics:
-                    result[f"PP_{cond_name}_N"] = cond_metrics.n
-                    result[f"PP_{cond_name}_MAE"] = cond_metrics.mae
-                    result[f"PP_{cond_name}_DeltaBias"] = cond_metrics.delta_bias
-                    result[f"PP_{cond_name}_Anomaly"] = cond_metrics.anomaly
-                else:
-                    result[f"PP_{cond_name}_N"] = 0
-                    result[f"PP_{cond_name}_MAE"] = np.nan
-                    result[f"PP_{cond_name}_DeltaBias"] = np.nan
-                    result[f"PP_{cond_name}_Anomaly"] = np.nan
         
         return result
 

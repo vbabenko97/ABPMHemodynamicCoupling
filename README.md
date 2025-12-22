@@ -49,14 +49,13 @@ python3 run_pipeline.py
 Place the following files in the `data/` directory:
 - `monitoring_data.csv` - Time-series hemodynamic data
 - `aggregated_data.csv` - Subject-level aggregated data (optional, for correlations)
-- `aggregated_data_clf.xlsx` - Subject-level data for classifier (optional)
+- `aggregated_data_clf.csv` - Subject-level data for classifier (optional)
 
 ### Output Files
 
 The pipeline generates the following in `results/`:
 
 **Tables:**
-- `table1_final.csv` - Demographics by condition
 - `per_subject_metrics.csv` - Subject-level metrics
 
 **Statistical Summaries:**
@@ -65,9 +64,10 @@ The pipeline generates the following in `results/`:
 - `pairwise_tests.txt` - Pairwise comparisons
 
 **Figures (400 DPI):**
-- `figure_2_dotplots.png` - MAE inflation and bias distributions
-- `figure_3_obs_vs_pred.png` - Observed vs predicted for case studies
-- `figure_4_timeseries_residuals.png` - Time-series with residuals
+- `demographics.png` - Demographics overview
+- `dotplots.png` - MAE inflation and bias distributions
+- `obs_vs_pred.png` - Observed vs predicted for case studies
+- `timeseries_residuals.png` - Time-series with residuals
 
 ## Features
 
@@ -76,7 +76,6 @@ The pipeline generates the following in `results/`:
 - **Model Comparison**: Lasso, RFE, OLS baselines
 - **Leakage-free CV**: Strict cross-validation with inner scaling
 - **DBP Prediction**: 6D feature space (SBP, HR, and derived features)
-- **PP Prediction**: 4D feature space (HR-only derived features)
 
 ### Statistical Analysis
 - Bootstrap confidence intervals
@@ -120,4 +119,4 @@ Refactored: December 2025
 
 ## License
 
-[Specify license]
+Apache License 2.0. See [LICENSE](LICENSE) for details.

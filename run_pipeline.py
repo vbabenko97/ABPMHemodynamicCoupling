@@ -21,12 +21,13 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.stats import mannwhitneyu, chi2_contingency
 
 from abpm_analysis.config import Config, Columns
 from abpm_analysis.models import SubjectResult, ConditionMetrics
 from abpm_analysis.data_processing import DataLoader
-from abpm_analysis.feature_engineering import DBPFeatureExtractor, PPFeatureExtractor
+from abpm_analysis.feature_engineering import DBPFeatureExtractor
 from abpm_analysis.modeling import CrossValidator, ModelTrainer, ResponderClassifier
 from abpm_analysis.statistics import (
     DistributionAnalyzer, CorrelationAnalyzer, MultipleTestingCorrector
@@ -46,7 +47,6 @@ class SubjectAnalyzer:
         self.cv_validator = CrossValidator(config)
         self.trainer = ModelTrainer(config)
         self.dbp_extractor = DBPFeatureExtractor(config)
-        self.pp_extractor = PPFeatureExtractor(config)
     
     def analyze_subject(
         self,
@@ -81,12 +81,6 @@ class SubjectAnalyzer:
             Columns.DBP, self.dbp_extractor
         )
         
-        # Analyze PP
-        pp_result = self._analyze_target(
-            df_subject, df_base,
-            Columns.PP, self.pp_extractor
-        )
-        
         # Combine results
         result = SubjectResult(
             participant_id=subject_id,
@@ -95,18 +89,13 @@ class SubjectAnalyzer:
             dbp_ref_mae=dbp_result['ref_mae'],
             dbp_cognitive_task=dbp_result.get('cognitive_task'),
             dbp_physical_task=dbp_result.get('physical_task'),
-            dbp_air_alert=dbp_result.get('air_alert'),
-            pp_winner=pp_result.get('winner'),
-            pp_ref_mae=pp_result.get('ref_mae'),
-            pp_cognitive_task=pp_result.get('cognitive_task'),
-            pp_physical_task=pp_result.get('physical_task'),
-            pp_air_alert=pp_result.get('air_alert'),
+            dbp_air_alert=dbp_result.get('air_alert')
         )
         
         return result
     
     def _analyze_target(self, df_subject, df_base, target_col, feature_extractor):
-        """Analyze a specific target (DBP or PP)."""
+        """Analyze a specific target (DBP)."""
         # Extract features
         X_raw = feature_extractor.extract(df_base)
         y = df_base[target_col].values
@@ -314,20 +303,8 @@ def main():
     loader = DataLoader(config)
     df = loader.load_monitoring_data()
     
-    # Generate Table 1: Demographics
-    print("\\nGenerating demographics...")
-    gb = df.groupby(Columns.LABEL)
-    table1 = gb.agg({
-        Columns.PAT_ID: 'nunique',
-        Columns.SBP: ['count', 'median'],
-        Columns.DBP: ['median'],
-        Columns.HR: ['median']
-    })
-    table1.to_csv(config.get_results_path(config.TABLE1_OUTPUT))
-    print(f"Table 1 saved: {config.get_results_path(config.TABLE1_OUTPUT)}")
-    
     # Subject-level analysis
-    print("\\nStarting subject analysis...")
+    print("\nStarting subject analysis...")
     subjects = df[Columns.PAT_ID].unique()
     analyzer = SubjectAnalyzer(config)
     tracker = ProgressTracker(len(subjects), "Subject Analysis")
@@ -342,10 +319,34 @@ def main():
     # Create results DataFrame
     res_df = pd.DataFrame(results)
     res_df.to_csv(config.get_results_path(config.SUBJECT_METRICS_OUTPUT), index=False)
-    print(f"\\nSubject metrics saved: {config.get_results_path(config.SUBJECT_METRICS_OUTPUT)}")
+    print(f"\nSubject metrics saved: {config.get_results_path(config.SUBJECT_METRICS_OUTPUT)}")
+    
+    # Demographics visualization
+    print("\nSaving demographics figure...")
+    gb = df.groupby(Columns.LABEL)
+    table1 = gb.agg({
+        Columns.PAT_ID: 'nunique',
+        Columns.SBP: ['count', 'median'],
+        Columns.DBP: ['median'],
+        Columns.HR: ['median']
+    })
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.axis('off')
+    ax.axis('tight')
+    ax.table(
+        cellText=np.round(table1.values, 2),
+        colLabels=[f"{c[0]} ({c[1]})" if isinstance(c, tuple) else c for c in table1.columns],
+        rowLabels=table1.index,
+        loc='center'
+    )
+    fig.tight_layout()
+    demo_path = config.get_results_path(config.DEMOGRAPHICS_FIGURE)
+    fig.savefig(demo_path, dpi=config.FIGURE_DPI, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Demographics figure saved: {demo_path}")
     
     # Cohort-level statistics
-    print("\\nComputing cohort statistics...")
+    print("\nComputing cohort statistics...")
     cohort_analyzer = CohortAnalyzer(config)
     cohort_analyzer.generate_summary(
         res_df,
@@ -360,14 +361,14 @@ def main():
     viz_manager = VisualizationManager(config)
     viz_manager.generate_all(df, res_df)
     
-    print("\\nPipeline complete! Results in results/ directory.")
+    print("\nPipeline complete! Results in results/ directory.")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\\nERROR: Pipeline failed with exception: {e}")
+        print(f"\nERROR: Pipeline failed with exception: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
