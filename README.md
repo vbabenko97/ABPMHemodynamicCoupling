@@ -19,7 +19,6 @@ ABPMHemodynamicCoupling/
 ├── data/                    # Data files (CSV/Excel)
 ├── results/                 # Output directory
 ├── run_pipeline.py          # Main orchestration script
-├── pipeline.py              # Original monolithic script (archived)
 └── requirements.txt         # Python dependencies
 ```
 
