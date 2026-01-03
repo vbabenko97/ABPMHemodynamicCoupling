@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
+</p>
+
 # ABPM Hemodynamic Uncoupling Analysis
 
 A modular Python pipeline for analyzing hemodynamic coupling patterns in ambulatory blood pressure monitoring (ABPM) data.
