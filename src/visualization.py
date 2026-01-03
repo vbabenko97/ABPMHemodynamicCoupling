@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.dates as mdates
 
-from .config import Config, Columns
-from .feature_engineering import DBPFeatureExtractor
-from .modeling import ModelTrainer
+from config import Config, Columns
+from feature_engineering import DBPFeatureExtractor
+from modeling import ModelTrainer
 
 
 class FigureGenerator(ABC):
@@ -46,50 +46,71 @@ class Figure2Generator(FigureGenerator):
     """Generates Figure 2: Dot plots for Anomaly and DeltaBias."""
     
     def generate(self, df: pd.DataFrame, res_df: pd.DataFrame) -> None:
-        """Generate Figure 2: MAE inflation and signed residual bias dot plots."""
+        """Generate Figure 2: MAE inflation and signed residual bias dot plots.
+        
+        Uses distinct markers for Screen-Positive vs Screen-Negative participants.
+        """
         # Use only subjects with valid task data
         valid_df = res_df[res_df["DBP_Cognitive Task_N"] > 0].copy()
         if valid_df.empty:
             print("Skipping Figure 2 (no valid task data)")
             return
         
+        # Define responder status
+        valid_df["Is_Responder"] = (
+            (valid_df["DBP_Cognitive Task_Anomaly"] > self.config.RESPONDER_ANOMALY_THRESHOLD) |
+            (valid_df["DBP_Cognitive Task_DeltaBias"] > self.config.RESPONDER_BIAS_THRESHOLD)
+        ).astype(int)
+        
+        pos_df = valid_df[valid_df["Is_Responder"] == 1]
+        neg_df = valid_df[valid_df["Is_Responder"] == 0]
+        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         
-        # Fig 2A: MAE inflation %
-        sns.stripplot(
-            data=valid_df,
-            y="DBP_Cognitive Task_Anomaly",
-            ax=ax1,
-            color="#1f77b4",
-            size=9,
-            alpha=0.7,
-            jitter=0.2
-        )
-        med_anom = valid_df["DBP_Cognitive Task_Anomaly"].median()
-        ax1.axhline(med_anom, color='red', linestyle='--', label=f'Median: {med_anom:.1f}%')
-        ax1.set_title(r"A: MAE inflation ($A_{i,cog}$)", fontsize=16, fontweight='bold', pad=15)
-        ax1.set_ylabel("MAE inflation (%)", fontsize=14)
-        ax1.set_xlabel(f"N={len(valid_df)} Participants", fontsize=14)
-        ax1.tick_params(axis='both', which='major', labelsize=12)
-        ax1.legend(fontsize=12)
+        # Deterministic jitter for reproducibility
+        rng = np.random.default_rng(42)
         
-        # Fig 2B: Signed residual bias
-        sns.stripplot(
-            data=valid_df,
-            y="DBP_Cognitive Task_DeltaBias",
-            ax=ax2,
-            color="#ff7f0e",
-            size=9,
-            alpha=0.7,
-            jitter=0.2
-        )
-        med_bias = valid_df["DBP_Cognitive Task_DeltaBias"].median()
-        ax2.axhline(med_bias, color='red', linestyle='--', label=f'Median: {med_bias:.2f} mmHg')
-        ax2.set_title("B: Signed residual bias (ΔBias_i,cog)", fontsize=16, fontweight='bold', pad=15)
-        ax2.set_ylabel("Signed residual bias (mmHg)", fontsize=14)
-        ax2.set_xlabel(f"N={len(valid_df)} Participants", fontsize=14)
-        ax2.tick_params(axis='both', which='major', labelsize=12)
-        ax2.legend(fontsize=12)
+        # Panel configurations: (ax, column, title, ylabel, unit)
+        panels = [
+            (ax1, "DBP_Cognitive Task_Anomaly", r"A: MAE inflation ($A_{i,cog}$)", "MAE inflation (%)", "%"),
+            (ax2, "DBP_Cognitive Task_DeltaBias", r"B: Signed residual bias ($\Delta Bias_{i,cog}$)", "Signed residual bias (mmHg)", " mmHg"),
+        ]
+        
+        for ax, col, title, ylabel, unit in panels:
+            # Narrow x-spread with deterministic jitter
+            x_neg = rng.normal(0.0, 0.04, size=len(neg_df))
+            x_pos = rng.normal(0.0, 0.04, size=len(pos_df))
+            
+            # Screen-Negative (circles)
+            ax.scatter(
+                x_neg, neg_df[col].to_numpy(),
+                s=60, alpha=0.7, marker="o", color="#1f77b4",
+                label=f"Screen-Negative (n={len(neg_df)})"
+            )
+            
+            # Screen-Positive (X markers)
+            ax.scatter(
+                x_pos, pos_df[col].to_numpy(),
+                s=80, alpha=0.85, marker="X", color="#d62728",
+                label=f"Screen-Positive (n={len(pos_df)})"
+            )
+            
+            # Cohort median line
+            median_val = float(valid_df[col].median())
+            ax.axhline(median_val, linestyle="--", linewidth=1.5, color="gray",
+                       label=f"Cohort Median: {median_val:.2f}{unit}")
+            
+            ax.set_title(title, fontsize=16, fontweight='bold', pad=15)
+            ax.set_ylabel(ylabel, fontsize=14)
+            ax.set_xlabel(f"N={len(valid_df)} Participants", fontsize=14)
+            
+            # Clean x-axis (no meaningful x values)
+            ax.set_xlim(-0.2, 0.2)
+            ax.set_xticks([])
+            ax.tick_params(axis='y', which='major', labelsize=12)
+            
+            ax.legend(fontsize=11, loc='best', frameon=True)
+            ax.grid(True, alpha=0.2, axis='y')
         
         plt.tight_layout()
         save_path = self.config.get_results_path(self.config.FIGURE_2_OUTPUT)

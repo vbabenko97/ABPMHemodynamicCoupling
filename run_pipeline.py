@@ -24,16 +24,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import mannwhitneyu, chi2_contingency
 
-from abpm_analysis.config import Config, Columns
-from abpm_analysis.models import SubjectResult, ConditionMetrics
-from abpm_analysis.data_processing import DataLoader
-from abpm_analysis.feature_engineering import DBPFeatureExtractor
-from abpm_analysis.modeling import CrossValidator, ModelTrainer, ResponderClassifier
-from abpm_analysis.statistics import (
+from config import Config, Columns
+from models import SubjectResult, ConditionMetrics
+from data_processing import DataLoader
+from feature_engineering import DBPFeatureExtractor
+from modeling import CrossValidator, ModelTrainer, ResponderClassifier
+from stats_analysis import (
     DistributionAnalyzer, CorrelationAnalyzer, MultipleTestingCorrector
 )
-from abpm_analysis.visualization import VisualizationManager
-from abpm_analysis.utils import setup_logging, ProgressTracker
+from visualization import VisualizationManager
+from utils import setup_logging, ProgressTracker
 
 # Suppress warnings
 warnings.filterwarnings('ignore')

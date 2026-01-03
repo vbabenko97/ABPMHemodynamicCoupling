@@ -12,8 +12,8 @@ Refactored Date: 2025-12-22
 __version__ = "2.0.0"
 __author__ = "Vitalii Babenko"
 
-from .config import Config, Columns
-from .models import SubjectResult, ModelPerformance, StatisticalResult
+from config import Config, Columns
+from models import SubjectResult, ModelPerformance, StatisticalResult
 
 __all__ = [
     "Config",

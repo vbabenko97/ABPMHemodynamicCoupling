@@ -17,8 +17,8 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import KFold, StratifiedKFold, GridSearchCV
 
-from .config import Config
-from .models import ModelPerformance, ClassifierMetrics, ResponderClassificationResult
+from config import Config
+from models import ModelPerformance, ClassifierMetrics, ResponderClassificationResult
 
 
 class BrandonSelector:

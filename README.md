@@ -2,11 +2,13 @@
 
 A modular Python pipeline for analyzing hemodynamic coupling patterns in ambulatory blood pressure monitoring (ABPM) data.
 
+**This repository accompanies a project on hemodynamic uncoupling during cognitive stress.**
+
 ## Project Structure
 
 ```
 ABPMHemodynamicCoupling/
-├── src/abpm_analysis/       # Main analysis package
+├── src/                     # Main analysis package
 │   ├── __init__.py
 │   ├── config.py            # Configuration and constants
 │   ├── models.py            # Data models
@@ -32,42 +34,49 @@ ABPMHemodynamicCoupling/
 ### Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/vbabenko97/ABPMHemodynamicCoupling.git
+cd ABPMHemodynamicCoupling
+
 # Install dependencies
 python3 -m pip install -r requirements.txt
 ```
 
 ## Usage
 
-### Run the Complete Pipeline
+### Running the Pipeline
 
 ```bash
-python3 run_pipeline.py
+python run_pipeline.py
 ```
 
-### Input Files
+This will:
+1. Load and preprocess monitoring data from `data/monitoring_data.csv`
+2. Run subject-level hemodynamic uncoupling analysis
+3. Compute cohort-level statistics with FDR correction
+4. Generate publication-quality figures
 
-Place the following files in the `data/` directory:
-- `monitoring_data.csv` - Time-series hemodynamic data
-- `aggregated_data.csv` - Subject-level aggregated data (optional, for correlations)
-- `aggregated_data_clf.csv` - Subject-level data for classifier (optional)
+### Input Data Format
+
+Place the following files in the **root directory** or `data/`:
+
+| File | Description |
+|------|-------------|
+| `monitoring_data.csv` | Time-series hemodynamic readings (SBP, DBP, HR, timestamps, context labels) |
+| `aggregated_data.csv` | Subject-level aggregated data (optional, for correlation analysis) |
 
 ### Output Files
 
 The pipeline generates the following in `results/`:
 
-**Tables:**
-- `per_subject_metrics.csv` - Subject-level metrics
-
-**Statistical Summaries:**
-- `results_summary.txt` - Main statistical results
-- `cross_condition_analysis.txt` - Correlation analysis
-- `pairwise_tests.txt` - Pairwise comparisons
-
-**Figures (400 DPI):**
-- `demographics.png` - Demographics overview
-- `dotplots.png` - MAE inflation and bias distributions
-- `obs_vs_pred.png` - Observed vs predicted for case studies
-- `timeseries_residuals.png` - Time-series with residuals
+| File | Description |
+|------|-------------|
+| `per_subject_metrics.csv` | Subject-level uncoupling metrics |
+| `results_summary.txt` | Statistical summary with FDR-corrected p-values |
+| `dotplots.png` | **Figure 1**: MAE inflation and bias distributions |
+| `obs_vs_pred.png` | **Figure 2**: Observed vs predicted DBP for case studies |
+| `timeseries_residuals.png` | **Figure 3**: Time-series with residual analysis |
+| `demographics.png` | Demographics table visualization |
 
 ## Features
 
@@ -82,40 +91,16 @@ The pipeline generates the following in `results/`:
 - Wilcoxon signed-rank tests
 - Mann-Whitney U tests
 - Spearman correlations
-- FDR correction (Benjamini-Hochberg)
+- FDR correction (Benjamini-Hochberg, α=0.1)
 
-### Responder Classification
-- Logistic regression classifier
-- Grid search with stratified CV
-- Comprehensive performance metrics
-- Feature importance analysis
-
-## Development
-
-### Code Structure
-
-The codebase follows clean architecture principles:
-- **Separation of Concerns**: Each module has a single responsibility
-- **Type Hints**: Comprehensive type annotations
-- **Documentation**: Docstrings for all public functions
-- **Error Handling**: Graceful degradation with informative messages
-
-### Testing
-
-To verify the refactored pipeline produces identical results to the original:
-
-```bash
-# Run refactored pipeline
-python3 run_pipeline.py
-
-# Compare outputs with original results
-diff results/per_subject_metrics.csv original_results/per_subject_metrics.csv
-```
+### Visualization
+- High-resolution figures (400 DPI)
+- Screen-Positive vs Screen-Negative marker distinction
+- Thesis-ready styling with clear labels and legends
 
 ## Author
 
-**Vitalii Babenko**  
-Refactored: December 2025
+**Vitalii Babenko**, 2025
 
 ## License
 

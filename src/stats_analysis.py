@@ -12,8 +12,8 @@ import pandas as pd
 from scipy.stats import wilcoxon, mannwhitneyu, spearmanr, chi2_contingency
 from statsmodels.stats.multitest import fdrcorrection
 
-from .config import Config
-from .models import StatisticalResult
+from config import Config
+from models import StatisticalResult
 
 
 class BootstrapAnalyzer:

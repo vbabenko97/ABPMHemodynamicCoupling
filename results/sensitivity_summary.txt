@@ -1,0 +1,22 @@
+SENSITIVITY ANALYSIS REPORT
+===========================
+
+Varying Cognitive Anomaly Threshold (Bias Threshold fixed at > +2.0 mmHg)
+
+Threshold > 25.0%
+  - Screen-Positive: N=22 (81.5%)
+  - Median Anomaly: Pos=46.5%, Neg=-13.9% (p=0.0550)
+  - Median Bias:    Pos=5.46, Neg=-1.18 mmHg (p=0.1292)
+
+Threshold > 50.0%
+  - Screen-Positive: N=20 (74.1%)
+  - Median Anomaly: Pos=46.6%, Neg=-11.4% (p=0.1455)
+  - Median Bias:    Pos=6.09, Neg=-2.12 mmHg (p=0.0190)
+
+Threshold > 75.0%
+  - Screen-Positive: N=18 (66.7%)
+  - Median Anomaly: Pos=22.8%, Neg=11.2% (p=0.4558)
+  - Median Bias:    Pos=7.28, Neg=-4.02 mmHg (p=0.0011)
+
+Summary Statement:
+Sensitivity analysis varying the anomaly threshold (25/50/75%) yielded 22, 20, and 18 screen-positive participants, respectively. The qualitative pattern of hemodynamic uncoupling (elevated anomaly scores and/or residual bias in the positive group) was preserved across all thresholds.
