@@ -4,9 +4,6 @@ PAIRWISE TESTS (p<=0.05)
 height_cm vs weight_kilos (Spearman, n=28):
   Stat=0.669, p=0.0001, q=0.0043
 
-height_cm vs DBP_bfr_sleep_iqr (Spearman, n=28):
-  Stat=0.517, p=0.0049, q=0.0826
-
 weight_kilos vs bmi (Spearman, n=28):
   Stat=0.875, p=0.0000, q=0.0000
 
@@ -22,9 +19,6 @@ bmi vs SBP_drng_sleep_med (Spearman, n=28):
 bmi vs HR_after_sleep_med (Spearman, n=27):
   Stat=-0.604, p=0.0009, q=0.0250
 
-bmi vs SBP_test_1_med (Spearman, n=27):
-  Stat=0.518, p=0.0056, q=0.0902
-
 age vs first_stage_duration_m (Spearman, n=25):
   Stat=0.663, p=0.0003, q=0.0117
 
@@ -39,9 +33,6 @@ bp_load_% vs SBP_all_med (Spearman, n=28):
 
 bp_load_% vs DBP_all_med (Spearman, n=28):
   Stat=0.693, p=0.0000, q=0.0023
-
-bp_load_% vs SBP_all_iqr (Spearman, n=28):
-  Stat=0.509, p=0.0056, q=0.0902
 
 bp_load_% vs DBP_all_iqr (Spearman, n=28):
   Stat=0.637, p=0.0003, q=0.0106
@@ -64,9 +55,6 @@ bp_load_% vs DBP_bfr_sleep_med (Spearman, n=28):
 bp_load_% vs SBP_after_sleep_med (Spearman, n=27):
   Stat=0.707, p=0.0000, q=0.0020
 
-bp_load_% vs DBP_after_sleep_med (Spearman, n=27):
-  Stat=0.527, p=0.0047, q=0.0805
-
 bp_load_% vs SBP_after_sleep_iqr (Spearman, n=27):
   Stat=0.617, p=0.0006, q=0.0197
 
@@ -78,9 +66,6 @@ bp_load_% vs DBP_bfr_test_med (Spearman, n=28):
 
 bp_load_% vs SBP_test_1_med (Spearman, n=27):
   Stat=0.679, p=0.0001, q=0.0043
-
-bp_load_% vs DBP_test_1_med (Spearman, n=27):
-  Stat=0.555, p=0.0026, q=0.0541
 
 bp_load_% vs SBP_break_med (Spearman, n=26):
   Stat=0.658, p=0.0003, q=0.0105
@@ -100,17 +85,11 @@ sleep_duration_m vs sleep_duration_h (Spearman, n=28):
 sleep_duration_m vs HR_drng_wakefulness_med (Spearman, n=28):
   Stat=0.552, p=0.0023, q=0.0494
 
-sleep_duration_m vs HR_bfr_sleep_med (Spearman, n=28):
-  Stat=0.534, p=0.0034, q=0.0652
-
 sleep_duration_m vs HR_bfr_test_med (Spearman, n=28):
   Stat=0.691, p=0.0000, q=0.0023
 
 sleep_duration_h vs HR_drng_wakefulness_med (Spearman, n=28):
   Stat=0.552, p=0.0023, q=0.0494
-
-sleep_duration_h vs HR_bfr_sleep_med (Spearman, n=28):
-  Stat=0.534, p=0.0034, q=0.0652
 
 sleep_duration_h vs HR_bfr_test_med (Spearman, n=28):
   Stat=0.691, p=0.0000, q=0.0023
@@ -124,38 +103,17 @@ sbp_dip_% vs SBP_all_iqr (Spearman, n=28):
 sbp_dip_% vs SBP_drng_sleep_med (Spearman, n=28):
   Stat=-0.572, p=0.0015, q=0.0365
 
-sbp_dip_% vs DBP_after_sleep_med (Spearman, n=27):
-  Stat=0.554, p=0.0027, q=0.0548
-
-sbp_dip_% vs DBP_break_med (Spearman, n=26):
-  Stat=0.529, p=0.0055, q=0.0891
-
-dbp_dip_% vs SBP_all_iqr (Spearman, n=28):
-  Stat=0.533, p=0.0035, q=0.0659
-
 dbp_dip_% vs DBP_drng_sleep_med (Spearman, n=28):
   Stat=-0.802, p=0.0000, q=0.0000
 
-first_stage_duration_m vs DBP_bfr_sleep_med (Spearman, n=25):
-  Stat=0.577, p=0.0025, q=0.0519
-
 first_stage_duration_m vs DBP_break_med (Spearman, n=24):
   Stat=0.598, p=0.0020, q=0.0458
-
-second_stage_duration_m vs HR_all_med (Spearman, n=25):
-  Stat=-0.577, p=0.0025, q=0.0519
 
 second_stage_duration_m vs HR_bfr_sleep_med (Spearman, n=25):
   Stat=-0.604, p=0.0014, q=0.0357
 
 avg_reaction_time_battery_1 vs avg_reaction_time_battey_2 (Spearman, n=28):
   Stat=0.581, p=0.0012, q=0.0324
-
-stroop_effect_battery_2 vs SBP_drng_sleep_iqr (Spearman, n=28):
-  Stat=0.504, p=0.0062, q=0.0968
-
-stroop_effect_battery_2 vs DBP_phys_2_ratio (Spearman, n=25):
-  Stat=-0.535, p=0.0058, q=0.0927
 
 SBP_all_med vs SBP_drng_wakefulness_med (Spearman, n=28):
   Stat=0.894, p=0.0000, q=0.0000
@@ -166,14 +124,8 @@ SBP_all_med vs SBP_drng_sleep_med (Spearman, n=28):
 SBP_all_med vs SBP_bfr_sleep_med (Spearman, n=28):
   Stat=0.914, p=0.0000, q=0.0000
 
-SBP_all_med vs DBP_bfr_sleep_med (Spearman, n=28):
-  Stat=0.504, p=0.0062, q=0.0971
-
 SBP_all_med vs SBP_after_sleep_med (Spearman, n=27):
   Stat=0.631, p=0.0004, q=0.0146
-
-SBP_all_med vs SBP_after_sleep_iqr (Spearman, n=27):
-  Stat=0.559, p=0.0024, q=0.0510
 
 SBP_all_med vs SBP_bfr_test_med (Spearman, n=28):
   Stat=0.690, p=0.0000, q=0.0023
@@ -190,20 +142,11 @@ SBP_all_med vs SBP_test_2_med (Spearman, n=28):
 DBP_all_med vs DBP_drng_wakefulness_med (Spearman, n=28):
   Stat=0.774, p=0.0000, q=0.0001
 
-DBP_all_med vs DBP_drng_sleep_med (Spearman, n=28):
-  Stat=0.522, p=0.0044, q=0.0786
-
 DBP_all_med vs DBP_bfr_sleep_med (Spearman, n=28):
   Stat=0.945, p=0.0000, q=0.0000
 
 DBP_all_med vs SBP_after_sleep_iqr (Spearman, n=27):
   Stat=0.631, p=0.0004, q=0.0146
-
-DBP_all_med vs DBP_break_med (Spearman, n=26):
-  Stat=0.542, p=0.0042, q=0.0765
-
-DBP_all_med vs DBP_test_2_med (Spearman, n=28):
-  Stat=0.520, p=0.0046, q=0.0795
 
 HR_all_med vs HR_drng_wakefulness_med (Spearman, n=28):
   Stat=0.912, p=0.0000, q=0.0000
@@ -232,14 +175,8 @@ SBP_all_iqr vs DBP_all_iqr (Spearman, n=28):
 SBP_all_iqr vs SBP_drng_wakefulness_med (Spearman, n=28):
   Stat=0.628, p=0.0003, q=0.0128
 
-SBP_all_iqr vs DBP_drng_wakefulness_med (Spearman, n=28):
-  Stat=0.545, p=0.0027, q=0.0550
-
 SBP_all_iqr vs SBP_drng_wakefulness_iqr (Spearman, n=28):
   Stat=0.883, p=0.0000, q=0.0000
-
-SBP_all_iqr vs DBP_drng_wakefulness_iqr (Spearman, n=28):
-  Stat=0.521, p=0.0045, q=0.0790
 
 SBP_all_iqr vs SBP_bfr_sleep_med (Spearman, n=28):
   Stat=0.593, p=0.0009, q=0.0253
@@ -247,26 +184,11 @@ SBP_all_iqr vs SBP_bfr_sleep_med (Spearman, n=28):
 SBP_all_iqr vs SBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.793, p=0.0000, q=0.0001
 
-SBP_all_iqr vs DBP_after_sleep_med (Spearman, n=27):
-  Stat=0.539, p=0.0037, q=0.0684
-
 SBP_all_iqr vs SBP_bfr_test_med (Spearman, n=28):
   Stat=0.602, p=0.0007, q=0.0221
 
-SBP_all_iqr vs DBP_bfr_test_med (Spearman, n=28):
-  Stat=0.523, p=0.0043, q=0.0765
-
-SBP_all_iqr vs SBP_break_med (Spearman, n=26):
-  Stat=0.520, p=0.0064, q=0.0991
-
-SBP_all_iqr vs DBP_break_med (Spearman, n=26):
-  Stat=0.559, p=0.0030, q=0.0594
-
 SBP_all_iqr vs SBP_test_2_med (Spearman, n=28):
   Stat=0.564, p=0.0018, q=0.0414
-
-SBP_all_iqr vs DBP_test_2_med (Spearman, n=28):
-  Stat=0.520, p=0.0046, q=0.0795
 
 DBP_all_iqr vs SBP_drng_wakefulness_med (Spearman, n=28):
   Stat=0.553, p=0.0023, q=0.0494
@@ -277,26 +199,17 @@ DBP_all_iqr vs SBP_drng_wakefulness_iqr (Spearman, n=28):
 DBP_all_iqr vs DBP_drng_wakefulness_iqr (Spearman, n=28):
   Stat=0.734, p=0.0000, q=0.0006
 
-DBP_all_iqr vs SBP_bfr_sleep_med (Spearman, n=28):
-  Stat=0.513, p=0.0053, q=0.0863
-
 DBP_all_iqr vs SBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.603, p=0.0007, q=0.0214
 
 DBP_all_iqr vs DBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.747, p=0.0000, q=0.0004
 
-DBP_all_iqr vs DBP_after_sleep_iqr (Spearman, n=27):
-  Stat=0.514, p=0.0061, q=0.0957
-
 DBP_all_iqr vs SBP_bfr_test_med (Spearman, n=28):
   Stat=0.720, p=0.0000, q=0.0011
 
 DBP_all_iqr vs DBP_bfr_test_med (Spearman, n=28):
   Stat=0.591, p=0.0009, q=0.0264
-
-DBP_all_iqr vs SBP_test_2_med (Spearman, n=28):
-  Stat=0.532, p=0.0035, q=0.0660
 
 DBP_all_iqr vs DBP_test_2_med (Spearman, n=28):
   Stat=0.567, p=0.0017, q=0.0396
@@ -325,17 +238,8 @@ SBP_drng_wakefulness_med vs SBP_bfr_sleep_med (Spearman, n=28):
 SBP_drng_wakefulness_med vs SBP_after_sleep_med (Spearman, n=27):
   Stat=0.790, p=0.0000, q=0.0001
 
-SBP_drng_wakefulness_med vs DBP_after_sleep_med (Spearman, n=27):
-  Stat=0.547, p=0.0032, q=0.0623
-
-SBP_drng_wakefulness_med vs SBP_after_sleep_iqr (Spearman, n=27):
-  Stat=0.532, p=0.0043, q=0.0768
-
 SBP_drng_wakefulness_med vs SBP_bfr_test_med (Spearman, n=28):
   Stat=0.795, p=0.0000, q=0.0001
-
-SBP_drng_wakefulness_med vs DBP_bfr_test_med (Spearman, n=28):
-  Stat=0.537, p=0.0032, q=0.0625
 
 SBP_drng_wakefulness_med vs SBP_test_1_med (Spearman, n=27):
   Stat=0.812, p=0.0000, q=0.0000
@@ -346,14 +250,8 @@ SBP_drng_wakefulness_med vs DBP_test_1_med (Spearman, n=27):
 SBP_drng_wakefulness_med vs SBP_break_med (Spearman, n=26):
   Stat=0.759, p=0.0000, q=0.0005
 
-SBP_drng_wakefulness_med vs DBP_break_med (Spearman, n=26):
-  Stat=0.556, p=0.0032, q=0.0623
-
 SBP_drng_wakefulness_med vs SBP_test_2_med (Spearman, n=28):
   Stat=0.849, p=0.0000, q=0.0000
-
-SBP_drng_wakefulness_med vs DBP_test_2_med (Spearman, n=28):
-  Stat=0.515, p=0.0050, q=0.0835
 
 DBP_drng_wakefulness_med vs SBP_bfr_sleep_med (Spearman, n=28):
   Stat=0.580, p=0.0012, q=0.0330
@@ -385,9 +283,6 @@ DBP_drng_wakefulness_med vs SBP_break_med (Spearman, n=26):
 DBP_drng_wakefulness_med vs DBP_break_med (Spearman, n=26):
   Stat=0.745, p=0.0000, q=0.0009
 
-DBP_drng_wakefulness_med vs SBP_test_2_med (Spearman, n=28):
-  Stat=0.508, p=0.0058, q=0.0924
-
 DBP_drng_wakefulness_med vs DBP_test_2_med (Spearman, n=28):
   Stat=0.688, p=0.0001, q=0.0025
 
@@ -415,9 +310,6 @@ SBP_drng_wakefulness_iqr vs SBP_bfr_sleep_iqr (Spearman, n=28):
 SBP_drng_wakefulness_iqr vs DBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.566, p=0.0017, q=0.0400
 
-SBP_drng_wakefulness_iqr vs SBP_bfr_test_med (Spearman, n=28):
-  Stat=0.532, p=0.0036, q=0.0660
-
 DBP_drng_wakefulness_iqr vs SBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.567, p=0.0017, q=0.0396
 
@@ -426,12 +318,6 @@ DBP_drng_wakefulness_iqr vs DBP_bfr_sleep_iqr (Spearman, n=28):
 
 HR_drng_wakefulness_iqr vs HR_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.898, p=0.0000, q=0.0000
-
-HR_drng_wakefulness_iqr vs SBP_test_1_iqr (Spearman, n=27):
-  Stat=0.528, p=0.0046, q=0.0795
-
-HR_drng_wakefulness_iqr vs HR_test_1_iqr (Spearman, n=27):
-  Stat=0.528, p=0.0046, q=0.0795
 
 SBP_drng_sleep_med vs DBP_drng_sleep_med (Spearman, n=28):
   Stat=0.576, p=0.0013, q=0.0350
@@ -442,32 +328,14 @@ SBP_drng_sleep_med vs SBP_bfr_sleep_med (Spearman, n=28):
 SBP_drng_sleep_med vs SBP_test_1_med (Spearman, n=27):
   Stat=0.564, p=0.0022, q=0.0476
 
-SBP_drng_sleep_med vs SBP_test_2_med (Spearman, n=28):
-  Stat=0.512, p=0.0054, q=0.0880
-
-DBP_drng_sleep_med vs DBP_bfr_sleep_med (Spearman, n=28):
-  Stat=0.516, p=0.0049, q=0.0826
-
-HR_drng_sleep_med vs HR_bfr_sleep_med (Spearman, n=28):
-  Stat=0.519, p=0.0047, q=0.0801
-
 HR_drng_sleep_med vs HR_test_1_med (Spearman, n=27):
   Stat=0.604, p=0.0008, q=0.0250
-
-SBP_drng_sleep_iqr vs DBP_drng_sleep_iqr (Spearman, n=28):
-  Stat=0.533, p=0.0035, q=0.0660
 
 SBP_drng_sleep_iqr vs HR_drng_sleep_iqr (Spearman, n=28):
   Stat=0.573, p=0.0014, q=0.0361
 
-HR_drng_sleep_iqr vs HR_break_med (Spearman, n=26):
-  Stat=0.525, p=0.0059, q=0.0927
-
 SBP_bfr_sleep_med vs SBP_after_sleep_med (Spearman, n=27):
   Stat=0.710, p=0.0000, q=0.0019
-
-SBP_bfr_sleep_med vs SBP_after_sleep_iqr (Spearman, n=27):
-  Stat=0.530, p=0.0045, q=0.0790
 
 SBP_bfr_sleep_med vs SBP_bfr_test_med (Spearman, n=28):
   Stat=0.783, p=0.0000, q=0.0001
@@ -484,14 +352,8 @@ SBP_bfr_sleep_med vs SBP_break_med (Spearman, n=26):
 SBP_bfr_sleep_med vs SBP_test_2_med (Spearman, n=28):
   Stat=0.872, p=0.0000, q=0.0000
 
-SBP_bfr_sleep_med vs DBP_test_2_med (Spearman, n=28):
-  Stat=0.516, p=0.0050, q=0.0831
-
 DBP_bfr_sleep_med vs SBP_after_sleep_iqr (Spearman, n=27):
   Stat=0.657, p=0.0002, q=0.0080
-
-DBP_bfr_sleep_med vs SBP_break_med (Spearman, n=26):
-  Stat=0.527, p=0.0056, q=0.0902
 
 DBP_bfr_sleep_med vs DBP_break_med (Spearman, n=26):
   Stat=0.575, p=0.0021, q=0.0471
@@ -514,12 +376,6 @@ HR_bfr_sleep_med vs HR_test_2_med (Spearman, n=28):
 SBP_bfr_sleep_iqr vs DBP_bfr_sleep_iqr (Spearman, n=28):
   Stat=0.563, p=0.0018, q=0.0421
 
-SBP_bfr_sleep_iqr vs SBP_bfr_test_med (Spearman, n=28):
-  Stat=0.502, p=0.0065, q=0.0994
-
-HR_bfr_sleep_iqr vs HR_test_1_iqr (Spearman, n=27):
-  Stat=0.541, p=0.0036, q=0.0660
-
 SBP_after_sleep_med vs DBP_after_sleep_med (Spearman, n=27):
   Stat=0.806, p=0.0000, q=0.0001
 
@@ -535,35 +391,20 @@ SBP_after_sleep_med vs SBP_test_1_med (Spearman, n=26):
 SBP_after_sleep_med vs SBP_break_med (Spearman, n=25):
   Stat=0.710, p=0.0001, q=0.0033
 
-SBP_after_sleep_med vs DBP_break_med (Spearman, n=25):
-  Stat=0.566, p=0.0032, q=0.0625
-
 SBP_after_sleep_med vs SBP_test_2_med (Spearman, n=27):
   Stat=0.605, p=0.0008, q=0.0248
-
-DBP_after_sleep_med vs SBP_bfr_test_med (Spearman, n=27):
-  Stat=0.535, p=0.0041, q=0.0740
 
 DBP_after_sleep_med vs DBP_bfr_test_med (Spearman, n=27):
   Stat=0.747, p=0.0000, q=0.0006
 
-DBP_after_sleep_med vs DBP_break_med (Spearman, n=25):
-  Stat=0.543, p=0.0050, q=0.0835
-
 HR_after_sleep_med vs HR_after_sleep_iqr (Spearman, n=27):
   Stat=0.602, p=0.0009, q=0.0258
-
-SBP_after_sleep_iqr vs DBP_after_sleep_iqr (Spearman, n=27):
-  Stat=0.550, p=0.0029, q=0.0591
 
 SBP_after_sleep_iqr vs DBP_break_med (Spearman, n=25):
   Stat=0.629, p=0.0008, q=0.0235
 
 SBP_after_sleep_iqr vs SBP_test_2_med (Spearman, n=27):
   Stat=0.585, p=0.0014, q=0.0352
-
-SBP_after_sleep_iqr vs DBP_test_2_med (Spearman, n=27):
-  Stat=0.538, p=0.0038, q=0.0697
 
 SBP_bfr_test_med vs DBP_bfr_test_med (Spearman, n=28):
   Stat=0.687, p=0.0001, q=0.0025
@@ -580,20 +421,11 @@ SBP_bfr_test_med vs SBP_test_2_med (Spearman, n=28):
 SBP_bfr_test_med vs DBP_test_2_med (Spearman, n=28):
   Stat=0.598, p=0.0008, q=0.0237
 
-DBP_bfr_test_med vs SBP_test_1_med (Spearman, n=27):
-  Stat=0.555, p=0.0027, q=0.0542
-
 DBP_bfr_test_med vs DBP_test_1_med (Spearman, n=27):
   Stat=0.581, p=0.0015, q=0.0365
 
-DBP_bfr_test_med vs SBP_break_med (Spearman, n=26):
-  Stat=0.568, p=0.0025, q=0.0515
-
 DBP_bfr_test_med vs DBP_break_med (Spearman, n=26):
   Stat=0.626, p=0.0006, q=0.0201
-
-DBP_bfr_test_med vs SBP_test_2_med (Spearman, n=28):
-  Stat=0.515, p=0.0051, q=0.0839
 
 DBP_bfr_test_med vs DBP_test_2_med (Spearman, n=28):
   Stat=0.750, p=0.0000, q=0.0004
@@ -622,17 +454,8 @@ SBP_test_1_med vs DBP_break_med (Spearman, n=26):
 SBP_test_1_med vs SBP_test_2_med (Spearman, n=27):
   Stat=0.760, p=0.0000, q=0.0004
 
-SBP_test_1_med vs DBP_test_2_med (Spearman, n=27):
-  Stat=0.547, p=0.0032, q=0.0623
-
-DBP_test_1_med vs SBP_break_med (Spearman, n=26):
-  Stat=0.544, p=0.0041, q=0.0740
-
 DBP_test_1_med vs DBP_break_med (Spearman, n=26):
   Stat=0.643, p=0.0004, q=0.0140
-
-DBP_test_1_med vs SBP_test_2_med (Spearman, n=27):
-  Stat=0.512, p=0.0063, q=0.0982
 
 DBP_test_1_med vs DBP_test_2_med (Spearman, n=27):
   Stat=0.712, p=0.0000, q=0.0018
@@ -642,9 +465,6 @@ HR_test_1_med vs HR_break_med (Spearman, n=26):
 
 HR_test_1_med vs HR_test_2_med (Spearman, n=27):
   Stat=0.589, p=0.0012, q=0.0330
-
-SBP_test_1_iqr vs SBP_phys_1_ratio (Spearman, n=23):
-  Stat=0.568, p=0.0047, q=0.0799
 
 SBP_break_med vs DBP_break_med (Spearman, n=26):
   Stat=0.738, p=0.0000, q=0.0011
@@ -673,13 +493,7 @@ SBP_break_iqr vs DBP_break_iqr (Spearman, n=26):
 SBP_test_2_med vs DBP_test_2_med (Spearman, n=28):
   Stat=0.625, p=0.0004, q=0.0138
 
-HR_test_2_med vs HR_test_2_iqr (Spearman, n=28):
-  Stat=0.533, p=0.0035, q=0.0659
-
-SBP_test_2_iqr vs SBP_phys_2_ratio (Spearman, n=25):
-  Stat=0.541, p=0.0052, q=0.0855
-
 SBP_cog_1_ratio vs DBP_cog_1_ratio (Spearman, n=23):
   Stat=0.613, p=0.0019, q=0.0426
 
-Total Significant: 227
+Total Significant: 165

@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pandas as pd
 
-from .config import Config, Columns
+from config import Config, Columns
 
 
 class FeatureExtractor(ABC):

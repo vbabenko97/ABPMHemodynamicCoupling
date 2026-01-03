@@ -1,2 +1,4 @@
-Cross-condition analysis is not generated in this version of the pipeline.
-Pulse-pressure prediction outputs have been removed alongside related analyses.
+CROSS-CONDITION ANALYSIS (p<=0.1)
+============================================================
+
+Total Significant: 0

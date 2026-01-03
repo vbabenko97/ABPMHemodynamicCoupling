@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-from .config import Config, Columns
+from config import Config, Columns
 
 
 class Labeler:

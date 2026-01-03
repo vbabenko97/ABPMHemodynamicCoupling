@@ -1,4 +1,18 @@
-/.DS_Store
+# Auto-generated
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Results and intermediate files (optional - uncomment to track)
+# results/
+
+# Large binary and document files
 /.ipynb_checkpoints
 /Appendix.docx
 /Brandon.pptx
@@ -7,21 +21,12 @@
 /Metadata
 /NATO2025-Problem-Solution-Final.docx
 /Nastenko et al 2025_09_05.docx
-/PaperDraft.MD
-/PaperDraft_v3.docx
-/PaperDraft_v3_comments.docx
-/PaperDraft_v4.pdf
-/Q_and_A.docx
-/Sources.docx
 /System.docx
 /archive
 /description.docx
 /girls girls girls
 /new_results.pptx
-/pipeline.py
 /prompt.docx
 /prompt_copy.docx
 /Доклад.docx
-results/figure_1 копія.png
-results/figure_2 копія.png
-results/figure_2_dotplots.png
+data/
