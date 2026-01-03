@@ -96,7 +96,6 @@ The pipeline generates the following in `results/`:
 ### Visualization
 - High-resolution figures (400 DPI)
 - Screen-Positive vs Screen-Negative marker distinction
-- Thesis-ready styling with clear labels and legends
 
 ## Author
 
