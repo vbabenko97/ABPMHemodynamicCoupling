@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
+  <img src="logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
 </p>
 
 # ABPM Hemodynamic Coupling
@@ -21,15 +21,19 @@ ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-lin
 - Leakage-aware cross-validation with fixed random seeds for reproducible runs
 - Cohort-level bootstrap confidence intervals, Wilcoxon testing, and FDR correction
 - Publication-ready figure generation and conference presentation support
+- Interactive Streamlit MVP for uploading ABPM CSV data and reviewing results in-browser
+- Ukrainian UI labels for summary tables, figures, and subject-level metrics
 
 ## Repository Layout
 
 ```text
 ABPMHemodynamicCoupling/
+├── app.py                       # Streamlit web app (interactive MVP)
 ├── src/                         # Analysis package
 ├── data/                        # Input data (not committed)
 ├── results/                     # Generated outputs
 ├── tests/                       # Regression and smoke tests
+├── logo/                        # Project assets
 ├── .github/                     # CI and issue templates
 ├── generate_presentation.py     # IEEE ELNANO 2026 slide builder
 ├── run_pipeline.py              # Main orchestration entry point
@@ -61,6 +65,19 @@ python -m pip install -e .[dev]
 python run_pipeline.py
 ```
 
+### Run the Streamlit web app
+
+```bash
+streamlit run app.py
+```
+
+The web app provides an interactive MVP workflow for:
+
+- uploading `monitoring_data.csv`
+- sanitizing and validating incoming rows before analysis
+- viewing cohort summaries in tabular form
+- reviewing localized subject metrics and figures inside the browser
+
 The pipeline expects:
 
 | File | Required | Description |
@@ -81,6 +98,12 @@ Core outputs are written to `results/`:
 - `dotplots.png`
 - `obs_vs_pred.png`
 - `timeseries_residuals.png`
+
+In the Streamlit app, the same analysis is exposed through three tabs:
+
+- `Підсумок` with demographics, model counts, baseline MAE, condition comparisons, and subgroup analysis
+- `Метрики учасників` with localized per-subject results and CSV export
+- `Графіки` with the generated analysis figures
 
 ## Reproducibility
 
