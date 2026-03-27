@@ -17,35 +17,40 @@ from src.web_pipeline import PipelineResults, WebPipeline
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="ABPM Hemodynamic Coupling",
+    page_title="ABPM Гемодинамічне Поєднання",
     page_icon=":anatomical_heart:",
     layout="wide",
 )
 
-st.title("ABPM Hemodynamic Coupling Analysis")
+st.title("Аналіз гемодинамічного поєднання ABPM")
 st.markdown(
-    "Upload ambulatory blood-pressure monitoring data to run the full "
-    "subject-level and cohort-level analysis pipeline."
+    "Завантажте дані амбулаторного моніторингу артеріального тиску, "
+    "щоб запустити повний конвеєр аналізу на рівні окремих учасників "
+    "і всієї когорти."
 )
 
 # ---------------------------------------------------------------------------
 # Sidebar — file upload
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.header("Data Upload")
+    st.header("Завантаження даних")
     uploaded_file = st.file_uploader(
-        "Upload `monitoring_data.csv`",
+        "Завантажте `monitoring_data.csv`",
         type=["csv"],
-        help="CSV with columns: participant_id, datetime, SBP, DBP, HR, "
-        "plus context indicators (state, alert_window, is_cog, is_phys, …)",
+        help="CSV-файл зі стовпцями: participant_id, datetime, SBP, DBP, HR, "
+        "а також індикаторами контексту (state, alert_window, is_cog, is_phys, …)",
     )
 
     if uploaded_file is not None:
         st.success(f"**{uploaded_file.name}** ({uploaded_file.size:,} bytes)")
-        run_clicked = st.button("Run Pipeline", type="primary", use_container_width=True)
+        run_clicked = st.button(
+            "Запустити аналіз",
+            type="primary",
+            use_container_width=True,
+        )
     else:
         run_clicked = False
-        st.info("Awaiting CSV upload.")
+        st.info("Очікується завантаження CSV-файлу.")
 
 # ---------------------------------------------------------------------------
 # Run pipeline
@@ -54,44 +59,48 @@ if run_clicked and uploaded_file is not None:
     df_raw = pd.read_csv(uploaded_file)
     pipeline = WebPipeline()
 
-    with st.status("Running pipeline…", expanded=True) as status:
+    with st.status("Виконується аналіз…", expanded=True) as status:
         # Stage 1 — sanitize & validate
-        st.write("Sanitizing and validating data…")
+        st.write("Очищення та перевірка даних…")
         cleaned_df, san_report = pipeline.sanitize(df_raw)
 
         if san_report.has_drops:
             details = ", ".join(
-                f"**{n}** rows with invalid {col}"
+                f"**{n}** рядків із некоректним значенням {col}"
                 for col, n in san_report.counts.items()
             )
-            st.warning(f"Dropped {san_report.total_dropped} rows: {details}")
+            st.warning(
+                f"Видалено {san_report.total_dropped} рядків під час очищення: {details}"
+            )
 
         try:
             df = pipeline.validate_and_preprocess(cleaned_df)
         except ValueError as exc:
-            st.error(f"Data validation failed: {exc}")
+            st.error(f"Перевірка даних не пройдена: {exc}")
             st.stop()
 
         n_subjects = df["participant_id"].nunique()
         n_records = len(df)
-        st.write(f"Loaded **{n_records:,}** records for **{n_subjects}** subjects.")
+        st.write(
+            f"Завантажено **{n_records:,}** записів для **{n_subjects}** учасників."
+        )
 
         # Stage 2 — per-subject analysis
-        st.write("Analyzing subjects…")
+        st.write("Аналіз учасників…")
         progress = st.progress(0)
         res_df = pipeline.analyze_subjects(df, progress_callback=progress.progress)
         progress.empty()
 
         # Stage 3 — cohort statistics
-        st.write("Computing cohort statistics…")
+        st.write("Обчислення статистики когорти…")
         summary_text = pipeline.compute_statistics(res_df)
 
         # Stage 4 — figures
-        st.write("Generating figures…")
+        st.write("Побудова графіків…")
         demographics_fig = pipeline.create_demographics_figure(df)
         figures = pipeline.generate_figures(df, res_df)
 
-        status.update(label="Pipeline complete!", state="complete", expanded=False)
+        status.update(label="Аналіз завершено!", state="complete", expanded=False)
 
     st.session_state.results = PipelineResults(
         subject_metrics=res_df,
@@ -117,39 +126,39 @@ if "results" in st.session_state:
     # Show excluded rows if any were dropped during sanitization
     if "excluded_rows" in st.session_state:
         excluded = st.session_state.excluded_rows
-        with st.expander(f"Excluded rows ({len(excluded)})", expanded=False):
+        with st.expander(f"Виключені рядки ({len(excluded)})", expanded=False):
             st.dataframe(excluded, use_container_width=True)
             st.download_button(
-                "Download excluded rows",
+                "Завантажити виключені рядки",
                 excluded.to_csv(index=False),
                 file_name="excluded_rows.csv",
                 mime="text/csv",
             )
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Subjects", results.n_subjects)
-    col2.metric("Records", f"{results.n_records:,}")
-    col3.metric("Conditions analysed", len(results.figures))
+    col1.metric("Учасники", results.n_subjects)
+    col2.metric("Записи", f"{results.n_records:,}")
+    col3.metric("Проаналізовані умови", len(results.figures))
 
     tab_summary, tab_metrics, tab_figures = st.tabs(
-        ["Summary", "Subject Metrics", "Figures"]
+        ["Підсумок", "Метрики учасників", "Графіки"]
     )
 
     # --- Summary tab ---
     with tab_summary:
-        st.subheader("Demographics")
+        st.subheader("Демографія")
         st.pyplot(results.demographics_figure)
 
-        st.subheader("Results Summary")
+        st.subheader("Підсумок результатів")
         st.code(results.summary_text, language=None)
 
     # --- Subject metrics tab ---
     with tab_metrics:
-        st.subheader("Per-Subject Metrics")
+        st.subheader("Метрики по кожному учаснику")
         st.dataframe(results.subject_metrics, use_container_width=True)
 
         st.download_button(
-            "Download CSV",
+            "Завантажити CSV",
             results.subject_metrics.to_csv(index=False),
             file_name="per_subject_metrics.csv",
             mime="text/csv",
