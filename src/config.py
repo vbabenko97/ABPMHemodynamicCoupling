@@ -22,6 +22,9 @@ class Config:
     
     # Cross-validation settings
     LASSO_CV_FOLDS: int = 3
+    LASSO_MAX_ITER: int = 100000
+    LASSO_TOL: float = 1e-3
+    LASSO_SELECTION: str = "random"
     N_CV_SPLITS: int = 3
     
     # Statistical settings

@@ -18,6 +18,14 @@ from .config import Columns, Config
 from .feature_engineering import DBPFeatureExtractor
 from .modeling import ModelTrainer
 
+DISPLAY_LABELS = {
+    Columns.LABEL_AIR_ALERT: "Повітряна тривога",
+    Columns.LABEL_COGNITIVE_TASK: "Когнітивне навантаження",
+    Columns.LABEL_PHYSICAL_TASK: "Фізичне навантаження",
+    Columns.LABEL_BASELINE: "Базовий стан",
+    Columns.LABEL_SLEEP: "Сон",
+}
+
 
 class FigureGenerator(ABC):
     """Abstract base class for figure generators."""
@@ -78,8 +86,20 @@ class Figure2Generator(FigureGenerator):
         
         # Panel configurations: (ax, column, title, ylabel, unit)
         panels = [
-            (ax1, "DBP_Cognitive Task_Anomaly", r"A: MAE inflation ($A_{i,cog}$)", "MAE inflation (%)", "%"),
-            (ax2, "DBP_Cognitive Task_DeltaBias", r"B: Signed residual bias ($\Delta Bias_{i,cog}$)", "Signed residual bias (mmHg)", " mmHg"),
+            (
+                ax1,
+                "DBP_Cognitive Task_Anomaly",
+                r"A: Зростання MAE ($A_{i,cog}$)",
+                "Зростання MAE (%)",
+                "%",
+            ),
+            (
+                ax2,
+                "DBP_Cognitive Task_DeltaBias",
+                r"B: Зміщення залишків ($\Delta Bias_{i,cog}$)",
+                "Зміщення залишків (мм рт. ст.)",
+                " мм рт. ст.",
+            ),
         ]
         
         for ax, col, title, ylabel, unit in panels:
@@ -91,24 +111,24 @@ class Figure2Generator(FigureGenerator):
             ax.scatter(
                 x_neg, neg_df[col].to_numpy(),
                 s=60, alpha=0.7, marker="o", color="#1f77b4",
-                label=f"Screen-Negative (n={len(neg_df)})"
+                label=f"Скринінг-негативні (n={len(neg_df)})"
             )
             
             # Screen-Positive (X markers)
             ax.scatter(
                 x_pos, pos_df[col].to_numpy(),
                 s=80, alpha=0.85, marker="X", color="#d62728",
-                label=f"Screen-Positive (n={len(pos_df)})"
+                label=f"Скринінг-позитивні (n={len(pos_df)})"
             )
             
             # Cohort median line
             median_val = float(valid_df[col].median())
             ax.axhline(median_val, linestyle="--", linewidth=1.5, color="gray",
-                       label=f"Cohort Median: {median_val:.2f}{unit}")
+                       label=f"Медіана когорти: {median_val:.2f}{unit}")
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=15)
             ax.set_ylabel(ylabel, fontsize=14)
-            ax.set_xlabel(f"N={len(valid_df)} Participants", fontsize=14)
+            ax.set_xlabel(f"N={len(valid_df)} учасників", fontsize=14)
             
             # Clean x-axis (no meaningful x values)
             ax.set_xlim(-0.2, 0.2)
@@ -137,8 +157,8 @@ class Figure3Generator(FigureGenerator):
         """Generate Figure 3: Observed vs Predicted DBP scatter plots."""
         subject_ids = [36, 35]
         titles = [
-            "Subject 36 (Low coupling deviation)",
-            "Subject 35 (Highest residual-bias example)"
+            "Учасник 36 (низьке відхилення поєднання)",
+            "Учасник 35 (найвище зміщення залишків)",
         ]
         
         fig, axes = plt.subplots(1, 2, figsize=(15, 7))
@@ -185,7 +205,7 @@ class Figure3Generator(FigureGenerator):
                 ax.scatter(
                     y_true, y_pred,
                     marker=mkr, color=clr, alpha=alph, s=70,
-                    label=f"{lbl} (n={len(sub)})"
+                    label=f"{DISPLAY_LABELS.get(lbl, lbl)} (n={len(sub)})"
                 )
                 all_y_true.extend(y_true.tolist())
                 all_y_pred.extend(y_pred.tolist())
@@ -196,13 +216,20 @@ class Figure3Generator(FigureGenerator):
             # Diagonal line
             lim_min = min(min(all_y_true), min(all_y_pred)) - 5
             lim_max = max(max(all_y_true), max(all_y_pred)) + 5
-            ax.plot([lim_min, lim_max], [lim_min, lim_max], '--', color='gray', alpha=0.5, label="Perfect Fit")
+            ax.plot(
+                [lim_min, lim_max],
+                [lim_min, lim_max],
+                '--',
+                color='gray',
+                alpha=0.5,
+                label="Ідеальна відповідність",
+            )
             
             # Annotations
             anom = row_res["DBP_Cognitive Task_Anomaly"].iloc[0]
             bias = row_res["DBP_Cognitive Task_DeltaBias"].iloc[0]
-            desc = "(DBP over predicted)" if anom < 0 else "(DBP under predicted)"
-            textstr = '\\n'.join((
+            desc = "(ДАТ вищий за прогноз)" if anom < 0 else "(ДАТ нижчий за прогноз)"
+            textstr = '\n'.join((
                 r'$A_{i,cog} = %.1f\%%$' % (anom, ),
                 r'$\Delta Bias_{i,cog} = %.2f$ mmHg' % (bias, ),
                 desc
@@ -211,8 +238,8 @@ class Figure3Generator(FigureGenerator):
             ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=11, verticalalignment='top', bbox=props)
             
             ax.set_title(title, fontsize=14, fontweight='bold')
-            ax.set_xlabel("Observed DBP (mmHg)", fontsize=12)
-            ax.set_ylabel("Predicted DBP (mmHg)", fontsize=12)
+            ax.set_xlabel("Спостережуваний ДАТ (мм рт. ст.)", fontsize=12)
+            ax.set_ylabel("Прогнозований ДАТ (мм рт. ст.)", fontsize=12)
             ax.legend(fontsize=11, loc='lower right')
             ax.grid(True, alpha=0.2)
         
@@ -235,8 +262,8 @@ class Figure4Generator(FigureGenerator):
         """Generate Figure 4: Time-series with residuals."""
         subject_ids = [37, 39]
         titles = [
-            "Subject 37 (Short Alert Interval)",
-            "Subject 39 (Most Alert Readings)"
+            "Учасник 37 (короткий інтервал тривоги)",
+            "Учасник 39 (найбільше вимірювань під час тривоги)",
         ]
         
         fig, axes = plt.subplots(2, 2, figsize=(16, 10), sharex='col')
@@ -269,8 +296,22 @@ class Figure4Generator(FigureGenerator):
             
             # Top Plot: DBP vs Pred
             ax_top = axes[0, i]
-            ax_top.plot(df_p[Columns.TIME], df_p[Columns.DBP], 'o', markersize=6, label="Observed DBP", color="#1f77b4")
-            ax_top.plot(df_p[Columns.TIME], all_preds, '-', label="Predicted DBP", color="#ff7f0e", linewidth=2.5)
+            ax_top.plot(
+                df_p[Columns.TIME],
+                df_p[Columns.DBP],
+                'o',
+                markersize=6,
+                label="Спостережуваний ДАТ",
+                color="#1f77b4",
+            )
+            ax_top.plot(
+                df_p[Columns.TIME],
+                all_preds,
+                '-',
+                label="Прогнозований ДАТ",
+                color="#ff7f0e",
+                linewidth=2.5,
+            )
             
             # Bottom Plot: Residuals
             ax_bot = axes[1, i]
@@ -292,18 +333,18 @@ class Figure4Generator(FigureGenerator):
                     t_end = block_df[Columns.TIME].max()
                     
                     if lbl == Columns.LABEL_AIR_ALERT:
-                        label = 'Air Alert' if (i == 0 and ax == ax_top and not alert_labeled) else ""
+                        label = 'Повітряна тривога' if (i == 0 and ax == ax_top and not alert_labeled) else ""
                         ax.axvspan(t_start, t_end, color='red', alpha=0.3, label=label)
                         alert_labeled = True
                     elif "Sleep" in lbl:
-                        label = 'Sleep' if (i == 0 and ax == ax_top and not sleep_labeled) else ""
+                        label = 'Сон' if (i == 0 and ax == ax_top and not sleep_labeled) else ""
                         ax.axvspan(t_start, t_end, color='lightblue', alpha=0.2, label=label)
                         sleep_labeled = True
             
             ax_top.set_title(titles[i], fontsize=15, fontweight='bold', pad=15)
-            ax_top.set_ylabel("DBP (mmHg)", fontsize=13)
-            ax_bot.set_ylabel("Residual (mmHg)", fontsize=13)
-            ax_bot.set_xlabel("Time", fontsize=13)
+            ax_top.set_ylabel("ДАТ (мм рт. ст.)", fontsize=13)
+            ax_bot.set_ylabel("Залишок (мм рт. ст.)", fontsize=13)
+            ax_bot.set_xlabel("Час", fontsize=13)
             
             ax_bot.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
             ax_top.grid(True, alpha=0.2)

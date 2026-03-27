@@ -17,12 +17,12 @@ from src.web_pipeline import PipelineResults, WebPipeline
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="ABPM Гемодинамічне Поєднання",
+    page_title="Гемодинамічний аналіз даних добового моніторингу артеріального тиску",
     page_icon=":anatomical_heart:",
     layout="wide",
 )
 
-st.title("Аналіз гемодинамічного поєднання ABPM")
+st.title("Аналіз гемодинамічного поєднання в даних добового моніторингу артеріального тиску")
 st.markdown(
     "Завантажте дані амбулаторного моніторингу артеріального тиску, "
     "щоб запустити повний конвеєр аналізу на рівні окремих учасників "
@@ -42,7 +42,7 @@ with st.sidebar:
     )
 
     if uploaded_file is not None:
-        st.success(f"**{uploaded_file.name}** ({uploaded_file.size:,} bytes)")
+        st.success(f"**{uploaded_file.name}** ({uploaded_file.size:,} байт)")
         run_clicked = st.button(
             "Запустити аналіз",
             type="primary",
@@ -76,7 +76,7 @@ if run_clicked and uploaded_file is not None:
         try:
             df = pipeline.validate_and_preprocess(cleaned_df)
         except ValueError as exc:
-            st.error(f"Перевірка даних не пройдена: {exc}")
+            st.error(f"Помилка перевірки даних: {exc}")
             st.stop()
 
         n_subjects = df["participant_id"].nunique()
@@ -94,17 +94,19 @@ if run_clicked and uploaded_file is not None:
         # Stage 3 — cohort statistics
         st.write("Обчислення статистики когорти…")
         summary_text = pipeline.compute_statistics(res_df)
+        summary_view = pipeline.build_summary_view(res_df)
 
         # Stage 4 — figures
         st.write("Побудова графіків…")
-        demographics_fig = pipeline.create_demographics_figure(df)
+        demographics_table = pipeline.create_demographics_table(df)
         figures = pipeline.generate_figures(df, res_df)
 
         status.update(label="Аналіз завершено!", state="complete", expanded=False)
 
     st.session_state.results = PipelineResults(
         subject_metrics=res_df,
-        demographics_figure=demographics_fig,
+        demographics_table=demographics_table,
+        summary_view=summary_view,
         summary_text=summary_text,
         figures=figures,
         n_subjects=n_subjects,
@@ -126,10 +128,10 @@ if "results" in st.session_state:
     # Show excluded rows if any were dropped during sanitization
     if "excluded_rows" in st.session_state:
         excluded = st.session_state.excluded_rows
-        with st.expander(f"Виключені рядки ({len(excluded)})", expanded=False):
+        with st.expander(f"Відкинуті рядки ({len(excluded)})", expanded=False):
             st.dataframe(excluded, use_container_width=True)
             st.download_button(
-                "Завантажити виключені рядки",
+                "Завантажити відкинуті рядки",
                 excluded.to_csv(index=False),
                 file_name="excluded_rows.csv",
                 mime="text/csv",
@@ -138,7 +140,7 @@ if "results" in st.session_state:
     col1, col2, col3 = st.columns(3)
     col1.metric("Учасники", results.n_subjects)
     col2.metric("Записи", f"{results.n_records:,}")
-    col3.metric("Проаналізовані умови", len(results.figures))
+    col3.metric("Графіки", len(results.figures))
 
     tab_summary, tab_metrics, tab_figures = st.tabs(
         ["Підсумок", "Метрики учасників", "Графіки"]
@@ -146,26 +148,62 @@ if "results" in st.session_state:
 
     # --- Summary tab ---
     with tab_summary:
-        st.subheader("Демографія")
-        st.pyplot(results.demographics_figure)
+        st.subheader("Огляд вимірювань за станами")
+        st.dataframe(results.demographics_table, use_container_width=True, hide_index=True)
 
         st.subheader("Підсумок результатів")
-        st.code(results.summary_text, language=None)
+        st.markdown("**Найкращі моделі для ДАТ**")
+        st.dataframe(results.summary_view.model_counts, use_container_width=True, hide_index=True)
+
+        st.markdown("**MAE на базовому інтервалі**")
+        baseline = results.summary_view.baseline_stats
+        baseline_cols = st.columns(4)
+        baseline_cols[0].metric("Учасники (n)", baseline["n"])
+        baseline_cols[1].metric("Медіана MAE", f"{baseline['median']:.2f} мм рт. ст.")
+        baseline_cols[2].metric(
+            "IQR",
+            f"{baseline['q25']:.2f} – {baseline['q75']:.2f} мм рт. ст.",
+        )
+        baseline_cols[3].metric(
+            "Діапазон",
+            f"{baseline['min']:.2f} – {baseline['max']:.2f} мм рт. ст.",
+        )
+
+        st.markdown("**Порівняння за умовами**")
+        st.dataframe(results.summary_view.condition_stats, use_container_width=True, hide_index=True)
+
+        st.markdown(
+            f"**Підгруповий аналіз**: респонденти `n={results.summary_view.n_responders}`, "
+            f"нереспонденти `n={results.summary_view.n_non_responders}`"
+        )
+        st.dataframe(results.summary_view.subgroup_stats, use_container_width=True, hide_index=True)
+
+        with st.expander("Сирий текстовий звіт", expanded=False):
+            st.code(results.summary_text, language=None)
 
     # --- Subject metrics tab ---
     with tab_metrics:
         st.subheader("Метрики по кожному учаснику")
-        st.dataframe(results.subject_metrics, use_container_width=True)
+        display_pipeline = WebPipeline()
+        st.dataframe(
+            display_pipeline.localize_subject_metrics(results.subject_metrics),
+            use_container_width=True,
+        )
 
         st.download_button(
             "Завантажити CSV",
             results.subject_metrics.to_csv(index=False),
-            file_name="per_subject_metrics.csv",
+            file_name="metryky_po_uchasnykakh.csv",
             mime="text/csv",
         )
 
     # --- Figures tab ---
     with tab_figures:
+        figure_titles = {
+            "dotplots": "Точкові графіки",
+            "obs_vs_pred": "Спостережуваний і прогнозований ДАТ",
+            "timeseries_residuals": "Часові ряди та залишки",
+        }
         for name, fig in results.figures.items():
-            st.subheader(name.replace("_", " ").title())
+            st.subheader(figure_titles.get(name, name.replace("_", " ").title()))
             st.pyplot(fig)

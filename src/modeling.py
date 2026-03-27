@@ -182,7 +182,10 @@ class CrossValidator:
             try:
                 model = LassoCV(
                     cv=self.config.LASSO_CV_FOLDS,
-                    random_state=self.config.RANDOM_SEED
+                    max_iter=self.config.LASSO_MAX_ITER,
+                    random_state=self.config.RANDOM_SEED,
+                    selection=self.config.LASSO_SELECTION,
+                    tol=self.config.LASSO_TOL,
                 ).fit(X_train, y_train)
                 pred = model.predict(X_val)
                 scores["Lasso"].append(mean_absolute_error(y_val, pred))
@@ -270,7 +273,10 @@ class ModelTrainer:
         elif winner == "Lasso":
             model = LassoCV(
                 cv=self.config.LASSO_CV_FOLDS,
-                random_state=self.config.RANDOM_SEED
+                max_iter=self.config.LASSO_MAX_ITER,
+                random_state=self.config.RANDOM_SEED,
+                selection=self.config.LASSO_SELECTION,
+                tol=self.config.LASSO_TOL,
             ).fit(X_scaled, y)
             idx = list(range(X_scaled.shape[1]))
         elif winner == "OLS(SBP)":
