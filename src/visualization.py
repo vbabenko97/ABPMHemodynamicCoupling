@@ -6,16 +6,15 @@ Generates all research figures with consistent styling.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Tuple
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import matplotlib.dates as mdates
 
-from config import Config, Columns
-from feature_engineering import DBPFeatureExtractor
-from modeling import ModelTrainer
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from .config import Columns, Config
+from .feature_engineering import DBPFeatureExtractor
+from .modeling import ModelTrainer
 
 
 class FigureGenerator(ABC):
@@ -136,7 +135,7 @@ class Figure3Generator(FigureGenerator):
         feature_extractor = DBPFeatureExtractor(self.config)
         trainer = ModelTrainer(self.config)
         
-        for ax, pid, title in zip(axes, subject_ids, titles):
+        for ax, pid, title in zip(axes, subject_ids, titles, strict=False):
             df_p = df[df[Columns.PAT_ID] == pid]
             row_res = res_df[res_df[Columns.PAT_ID] == pid]
             if row_res.empty:

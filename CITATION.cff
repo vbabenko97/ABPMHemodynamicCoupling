@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "ABPM Hemodynamic Coupling"
+message: "If you use this repository, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: "Babenko"
+    given-names: "Vitalii"
+  - family-names: "Tymchak"
+    given-names: "Alyona"
+version: "2.0.0"
+date-released: 2026-01-01
+license: "Apache-2.0"
+repository-code: "https://github.com/vbabenko97/ABPMHemodynamicCoupling"
+url: "https://github.com/vbabenko97/ABPMHemodynamicCoupling"
+abstract: >
+  Scientific Python pipeline for analyzing stress-linked hemodynamic coupling
+  shifts in ambulatory blood pressure monitoring data in the IEEE ELNANO 2026
+  project context.

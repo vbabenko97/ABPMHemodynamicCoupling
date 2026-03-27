@@ -9,8 +9,19 @@ __pycache__/
 .vscode/
 *.swp
 
+# Python tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
 # Results and intermediate files (optional - uncomment to track)
 # results/
+
+scripts/
+tmp/
+*.tmp
+.~lock.*
 
 # Large binary and document files
 /.ipynb_checkpoints
@@ -30,3 +41,21 @@ __pycache__/
 /prompt_copy.docx
 /Доклад.docx
 data/
+/presentation.pdf
+/presentation.pptx
+/results/fig1.pdf
+/results/fig1.png
+/results/fig1_data.csv
+/results/presentation_*.png
+
+docs/ieee-elnano/
+
+# Claude
+.claude/
+.mcp.json
+prompts/
+
+# BMAD 
+_bmad/
+_bmad-output/
+.agents/

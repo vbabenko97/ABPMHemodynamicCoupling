@@ -6,11 +6,11 @@ Handles data loading, validation, preprocessing, and hierarchical labeling.
 """
 
 from typing import Optional
-import pandas as pd
-import numpy as np
-from pathlib import Path
 
-from config import Config, Columns
+import numpy as np
+import pandas as pd
+
+from .config import Columns, Config
 
 
 class Labeler:
@@ -77,6 +77,25 @@ class Labeler:
 
 class DataValidator:
     """Validates data quality and completeness."""
+
+    @staticmethod
+    def _validate_physiological_range(
+        df: pd.DataFrame,
+        column: str,
+        lower: float,
+        upper: float,
+    ) -> None:
+        """Validate that non-missing values fall within a conservative range."""
+        valid_values = df[column].dropna()
+        if not np.isfinite(valid_values).all():
+            raise ValueError(f"Column {column} contains non-finite values")
+
+        out_of_range = valid_values[(valid_values < lower) | (valid_values > upper)]
+        if not out_of_range.empty:
+            raise ValueError(
+                f"Column {column} contains values outside [{lower}, {upper}] "
+                f"(n={len(out_of_range)})"
+            )
     
     @staticmethod
     def validate_monitoring_data(df: pd.DataFrame) -> None:
@@ -103,6 +122,25 @@ class DataValidator:
         for col in [Columns.SBP, Columns.DBP, Columns.HR]:
             if not pd.api.types.is_numeric_dtype(df[col]):
                 raise ValueError(f"Column {col} must be numeric")
+
+        DataValidator._validate_physiological_range(
+            df,
+            Columns.SBP,
+            Config.MIN_SBP,
+            Config.MAX_SBP,
+        )
+        DataValidator._validate_physiological_range(
+            df,
+            Columns.DBP,
+            Config.MIN_DBP,
+            Config.MAX_DBP,
+        )
+        DataValidator._validate_physiological_range(
+            df,
+            Columns.HR,
+            Config.MIN_HR,
+            Config.MAX_HR,
+        )
     
     @staticmethod
     def check_subject_data_quality(

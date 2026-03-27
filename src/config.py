@@ -35,6 +35,14 @@ class Config:
     # Minimum data requirements
     MIN_BASELINE_SAMPLES: int = 15
     MIN_CV_SAMPLES_MULTIPLIER: int = 2  # min samples = n_splits * multiplier
+
+    # Conservative physiological plausibility ranges for raw input screening
+    MIN_SBP: float = 60.0
+    MAX_SBP: float = 260.0
+    MIN_DBP: float = 30.0
+    MAX_DBP: float = 160.0
+    MIN_HR: float = 25.0
+    MAX_HR: float = 220.0
     
     # Directory paths (relative to project root)
     DATA_DIR: ClassVar[Path] = Path("data")

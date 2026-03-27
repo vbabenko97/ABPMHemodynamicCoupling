@@ -2,109 +2,111 @@
   <img src="Logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
 </p>
 
-# ABPM Hemodynamic Uncoupling Analysis
+# ABPM Hemodynamic Coupling
 
-A modular Python pipeline for analyzing hemodynamic coupling patterns in ambulatory blood pressure monitoring (ABPM) data.
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![CI](https://github.com/vbabenko97/ABPMHemodynamicCoupling/actions/workflows/ci.yml/badge.svg)](https://github.com/vbabenko97/ABPMHemodynamicCoupling/actions/workflows/ci.yml)
 
-**This repository accompanies a project on hemodynamic uncoupling during cognitive stress.**
+ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-linked blood pressure relationship shifts in ambulatory blood pressure monitoring (ABPM) data. The repository supports the IEEE ELNANO 2026 project context and reproduces the subject-level modeling, cohort-level summaries, and publication figures used in the study workflow.
 
-## Project Structure
+## Authors
 
-```
+- Vitalii Babenko
+- Alyona Tymchak
+
+## Highlights
+
+- Subject-level DBP modeling with Brandon selection, Lasso, RFE, and OLS baselines
+- Leakage-aware cross-validation with fixed random seeds for reproducible runs
+- Cohort-level bootstrap confidence intervals, Wilcoxon testing, and FDR correction
+- Publication-ready figure generation and conference presentation support
+
+## Repository Layout
+
+```text
 ABPMHemodynamicCoupling/
-├── src/                     # Main analysis package
-│   ├── __init__.py
-│   ├── config.py            # Configuration and constants
-│   ├── models.py            # Data models
-│   ├── data_processing.py   # Data loading and preprocessing
-│   ├── feature_engineering.py  # Feature extraction
-│   ├── modeling.py          # Model training and evaluation
-│   ├── statistics.py        # Statistical analysis
-│   ├── utils.py             # Utility functions
-│   └── visualization.py     # Figure generation
-├── data/                    # Data files (CSV/Excel)
-├── results/                 # Output directory
-├── run_pipeline.py          # Main orchestration script
-└── requirements.txt         # Python dependencies
+├── src/                         # Analysis package
+├── data/                        # Input data (not committed)
+├── results/                     # Generated outputs
+├── tests/                       # Regression and smoke tests
+├── .github/                     # CI and issue templates
+├── generate_presentation.py     # IEEE ELNANO 2026 slide builder
+├── run_pipeline.py              # Main orchestration entry point
+├── pyproject.toml               # Package and tool configuration
+└── requirements.txt             # Minimal runtime dependencies
 ```
 
 ## Installation
 
-### Requirements
-
-- Python 3.8+
-- See `requirements.txt` for package dependencies
-
-### Setup
+### Editable install
 
 ```bash
-# Clone the repository
 git clone https://github.com/vbabenko97/ABPMHemodynamicCoupling.git
 cd ABPMHemodynamicCoupling
-
-# Install dependencies
-python3 -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -e .[dev]
 ```
+
+### Requirements
+
+- Python 3.10 or newer
+- CSV input files placed under `data/`
 
 ## Usage
 
-### Running the Pipeline
+### Run the analysis pipeline
 
 ```bash
 python run_pipeline.py
 ```
 
-This will:
-1. Load and preprocess monitoring data from `data/monitoring_data.csv`
-2. Run subject-level hemodynamic uncoupling analysis
-3. Compute cohort-level statistics with FDR correction
-4. Generate publication-quality figures
+The pipeline expects:
 
-### Input Data Format
+| File | Required | Description |
+|------|----------|-------------|
+| `data/monitoring_data.csv` | Yes | Time-series ABPM data with `participant_id`, `datetime`, `SBP`, `DBP`, `HR`, and context columns |
+| `data/aggregated_data.csv` | No | Subject-level aggregates for follow-on association analyses |
+| `data/aggregated_data_clf.csv` | No | Subject-level classifier inputs for responder modeling |
 
-Place the following files in the **root directory** or `data/`:
+### Outputs
 
-| File | Description |
-|------|-------------|
-| `monitoring_data.csv` | Time-series hemodynamic readings (SBP, DBP, HR, timestamps, context labels) |
-| `aggregated_data.csv` | Subject-level aggregated data (optional, for correlation analysis) |
+Core outputs are written to `results/`:
 
-### Output Files
+- `per_subject_metrics.csv`
+- `results_summary.txt`
+- `cross_condition_analysis.txt`
+- `pairwise_tests.txt`
+- `demographics.png`
+- `dotplots.png`
+- `obs_vs_pred.png`
+- `timeseries_residuals.png`
 
-The pipeline generates the following in `results/`:
+## Reproducibility
 
-| File | Description |
-|------|-------------|
-| `per_subject_metrics.csv` | Subject-level uncoupling metrics |
-| `results_summary.txt` | Statistical summary with FDR-corrected p-values |
-| `dotplots.png` | **Figure 1**: MAE inflation and bias distributions |
-| `obs_vs_pred.png` | **Figure 2**: Observed vs predicted DBP for case studies |
-| `timeseries_residuals.png` | **Figure 3**: Time-series with residual analysis |
-| `demographics.png` | Demographics table visualization |
+- Core configuration lives in `src/config.py`.
+- The repository fixes `RANDOM_SEED = 42`, `FDR_ALPHA = 0.1`, and `BOOTSTRAP_ITERATIONS = 10000`.
+- Input validation checks required columns, numeric dtypes, and conservative SBP/DBP/HR ranges before analysis starts.
+- CI runs linting and tests on every push and pull request.
 
-## Features
+## Citation
 
-### Modeling
-- **Brandon's Feature Selection**: Multiplicative ratio-based feature selection
-- **Model Comparison**: Lasso, RFE, OLS baselines
-- **Leakage-free CV**: Strict cross-validation with inner scaling
-- **DBP Prediction**: 6D feature space (SBP, HR, and derived features)
+If you use this repository in academic work, cite the project metadata in `CITATION.cff`.
 
-### Statistical Analysis
-- Bootstrap confidence intervals
-- Wilcoxon signed-rank tests
-- Mann-Whitney U tests
-- Spearman correlations
-- FDR correction (Benjamini-Hochberg, α=0.1)
+```bibtex
+@software{babenko_tymchak_abpm_hemodynamic_coupling,
+  title = {ABPM Hemodynamic Coupling},
+  author = {Babenko, Vitalii and Tymchak, Alyona},
+  year = {2026},
+  note = {IEEE ELNANO 2026 project repository},
+  url = {https://github.com/vbabenko97/ABPMHemodynamicCoupling}
+}
+```
 
-### Visualization
-- High-resolution figures (400 DPI)
-- Screen-Positive vs Screen-Negative marker distinction
+## Contributing
 
-## Author
-
-**Vitalii Babenko**, 2025
+Bug reports and focused pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for the local workflow and development expectations.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE) for details.
+Released under the Apache License 2.0. See [LICENSE](LICENSE) for the full text.

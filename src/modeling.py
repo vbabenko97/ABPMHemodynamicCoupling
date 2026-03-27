@@ -5,20 +5,24 @@ Modeling and Model Selection
 Model training, cross-validation, and responder classification.
 """
 
-from typing import Tuple, List, Optional, Dict, Any
+from typing import Any, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression, LassoCV, LogisticRegression
 from sklearn.feature_selection import RFE
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
 from sklearn.metrics import (
-    mean_absolute_error, accuracy_score, precision_score, 
-    recall_score, f1_score
+    accuracy_score,
+    f1_score,
+    mean_absolute_error,
+    precision_score,
+    recall_score,
 )
-from sklearn.model_selection import KFold, StratifiedKFold, GridSearchCV
+from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
 
-from config import Config
-from models import ModelPerformance, ClassifierMetrics, ResponderClassificationResult
+from .config import Config
+from .models import ClassifierMetrics, ModelPerformance, ResponderClassificationResult
 
 
 class BrandonSelector:
@@ -88,7 +92,7 @@ class BrandonSelector:
             try:
                 coeffs = np.linalg.lstsq(A, r_curr, rcond=None)[0]
                 pred = A @ coeffs
-            except:
+            except (np.linalg.LinAlgError, ValueError):
                 pred = np.mean(r_curr) * np.ones_like(r_curr)
             
             # Avoid division by zero
@@ -158,6 +162,7 @@ class CrossValidator:
         for train_ix, val_ix in kf.split(X_raw):
             X_train_raw, X_val_raw = X_raw[train_ix], X_raw[val_ix]
             y_train, y_val = y[train_ix], y[val_ix]
+            selected_idx: List[int] | None = None
             
             # Inner scaling (no leakage)
             scaler = StandardScaler()
@@ -167,10 +172,10 @@ class CrossValidator:
             # Brandon
             try:
                 selector = BrandonSelector(self.config)
-                model, idx = selector.fit(X_train, y_train)
-                pred = model.predict(X_val[:, idx])
+                model, selected_idx = selector.fit(X_train, y_train)
+                pred = model.predict(X_val[:, selected_idx])
                 scores["Brandon"].append(mean_absolute_error(y_val, pred))
-            except:
+            except (np.linalg.LinAlgError, ValueError):
                 scores["Brandon"].append(np.nan)
             
             # Lasso
@@ -181,19 +186,19 @@ class CrossValidator:
                 ).fit(X_train, y_train)
                 pred = model.predict(X_val)
                 scores["Lasso"].append(mean_absolute_error(y_val, pred))
-            except:
+            except ValueError:
                 scores["Lasso"].append(np.nan)
             
             # RFE
             try:
-                n_feat = len(idx) if 'idx' in locals() else 3
+                n_feat = len(selected_idx) if selected_idx is not None else 3
                 rfe = RFE(
                     LinearRegression(),
                     n_features_to_select=n_feat
                 ).fit(X_train, y_train)
                 pred = rfe.predict(X_val)
                 scores["RFE"].append(mean_absolute_error(y_val, pred))
-            except:
+            except ValueError:
                 scores["RFE"].append(np.nan)
             
             # OLS Baseline 1: DBP = f(SBP)
@@ -201,7 +206,7 @@ class CrossValidator:
                 model = LinearRegression().fit(X_train[:, [0]], y_train)
                 pred = model.predict(X_val[:, [0]])
                 scores["OLS(SBP)"].append(mean_absolute_error(y_val, pred))
-            except:
+            except ValueError:
                 scores["OLS(SBP)"].append(np.nan)
             
             # OLS Baseline 2: DBP = f(SBP, HR)
@@ -209,7 +214,7 @@ class CrossValidator:
                 model = LinearRegression().fit(X_train[:, [0, 1]], y_train)
                 pred = model.predict(X_val[:, [0, 1]])
                 scores["OLS(SBP,HR)"].append(mean_absolute_error(y_val, pred))
-            except:
+            except ValueError:
                 scores["OLS(SBP,HR)"].append(np.nan)
         
         # Compute average scores

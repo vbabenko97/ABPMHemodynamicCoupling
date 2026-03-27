@@ -5,38 +5,36 @@ ABPM Hemodynamic Uncoupling Analysis Pipeline
 
 Main orchestration script for the refactored analysis pipeline.
 
-Author: Vitalii Babenko
+Authors: Vitalii Babenko and Alyona Tymchak
 Refactored Date: 2025-12-22
 
 Usage:
     python run_pipeline.py
 """
 
-import sys
 import warnings
 from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import mannwhitneyu, chi2_contingency
+import numpy as np
+import pandas as pd
+from scipy.stats import mannwhitneyu
 
-from config import Config, Columns
-from models import SubjectResult, ConditionMetrics
-from data_processing import DataLoader
-from feature_engineering import DBPFeatureExtractor
-from modeling import CrossValidator, ModelTrainer, ResponderClassifier
-from stats_analysis import (
-    DistributionAnalyzer, CorrelationAnalyzer, MultipleTestingCorrector
+from src.config import Columns, Config
+from src.data_processing import DataLoader
+from src.feature_engineering import DBPFeatureExtractor
+from src.modeling import CrossValidator, ModelTrainer
+from src.models import ConditionMetrics, SubjectResult
+from src.stats_analysis import (
+    CorrelationAnalyzer,
+    DistributionAnalyzer,
+    MultipleTestingCorrector,
 )
-from visualization import VisualizationManager
-from utils import setup_logging, ProgressTracker
+from src.utils import ProgressTracker
+from src.visualization import VisualizationManager
 
-# Suppress warnings
-warnings.filterwarnings('ignore')
+# Suppress known noisy warnings without hiding all diagnostics
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class SubjectAnalyzer:
@@ -367,8 +365,8 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(f"\nERROR: Pipeline failed with exception: {e}")
+    except Exception as error:
+        print(f"\nERROR: Pipeline failed with exception: {error}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
+        raise SystemExit(1) from error

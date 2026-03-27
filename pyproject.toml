@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abpm-hemodynamic-coupling"
+version = "2.0.0"
+description = "Scientific Python pipeline for analyzing stress-linked hemodynamic coupling shifts in ABPM data."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Vitalii Babenko" },
+  { name = "Alyona Tymchak" },
+]
+keywords = [
+  "abpm",
+  "blood-pressure",
+  "hemodynamics",
+  "biomedical-signal-processing",
+  "scientific-python",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+dependencies = [
+  "pandas>=2.0.0",
+  "numpy>=1.24.0",
+  "scikit-learn>=1.3.0",
+  "scipy>=1.11.0",
+  "matplotlib>=3.7.0",
+  "statsmodels>=0.14.0",
+  "openpyxl>=3.1.0",
+  "python-pptx>=0.6.23",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.11.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vbabenko97/ABPMHemodynamicCoupling"
+Repository = "https://github.com/vbabenko97/ABPMHemodynamicCoupling"
+
+[project.scripts]
+abpm-hemodynamic-pipeline = "run_pipeline:main"
+
+[tool.setuptools]
+packages = ["src"]
+py-modules = ["run_pipeline", "generate_presentation"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+extend-exclude = ["generate_presentation.py"]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = ["E501"]
+select = ["E", "F", "I", "B"]

@@ -6,14 +6,15 @@ Bootstrap confidence intervals, distribution stats, correlation analysis,
 and multiple testing correction.
 """
 
-from typing import Tuple, Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from scipy.stats import wilcoxon, mannwhitneyu, spearmanr, chi2_contingency
+from scipy.stats import chi2_contingency, mannwhitneyu, spearmanr, wilcoxon
 from statsmodels.stats.multitest import fdrcorrection
 
-from config import Config
-from models import StatisticalResult
+from .config import Config
+from .models import StatisticalResult
 
 
 class BootstrapAnalyzer:
@@ -83,7 +84,7 @@ class DistributionAnalyzer:
         # Wilcoxon signed-rank test (against zero)
         try:
             w_stat, w_p = wilcoxon(data)
-        except:
+        except ValueError:
             w_stat, w_p = np.nan, 1.0
         
         return StatisticalResult(
@@ -217,4 +218,4 @@ class MultipleTestingCorrector:
             Dictionary mapping keys to q-values
         """
         q_values = self.apply_fdr(p_values)
-        return {key: q for key, q in zip(keys, q_values)}
+        return {key: q for key, q in zip(keys, q_values, strict=False)}

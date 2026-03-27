@@ -6,10 +6,11 @@ Feature extraction for DBP prediction models.
 """
 
 from abc import ABC, abstractmethod
+
 import numpy as np
 import pandas as pd
 
-from config import Config, Columns
+from .config import Columns, Config
 
 
 class FeatureExtractor(ABC):
@@ -88,4 +89,3 @@ class DBPFeatureExtractor(FeatureExtractor):
     def get_feature_names(self) -> list:
         """Get DBP feature names."""
         return ["SBP", "HR", "1/SBP", "1/HR", "SBP*HR", "1/(SBP*HR)"]
-
