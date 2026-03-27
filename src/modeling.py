@@ -5,10 +5,12 @@ Modeling and Model Selection
 Model training, cross-validation, and responder classification.
 """
 
+import warnings
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
 from sklearn.metrics import (
@@ -180,16 +182,18 @@ class CrossValidator:
             
             # Lasso
             try:
-                model = LassoCV(
-                    cv=self.config.LASSO_CV_FOLDS,
-                    max_iter=self.config.LASSO_MAX_ITER,
-                    random_state=self.config.RANDOM_SEED,
-                    selection=self.config.LASSO_SELECTION,
-                    tol=self.config.LASSO_TOL,
-                ).fit(X_train, y_train)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", ConvergenceWarning)
+                    model = LassoCV(
+                        cv=self.config.LASSO_CV_FOLDS,
+                        max_iter=self.config.LASSO_MAX_ITER,
+                        random_state=self.config.RANDOM_SEED,
+                        selection=self.config.LASSO_SELECTION,
+                        tol=self.config.LASSO_TOL,
+                    ).fit(X_train, y_train)
                 pred = model.predict(X_val)
                 scores["Lasso"].append(mean_absolute_error(y_val, pred))
-            except ValueError:
+            except (ConvergenceWarning, ValueError):
                 scores["Lasso"].append(np.nan)
             
             # RFE
@@ -271,13 +275,15 @@ class ModelTrainer:
             selector = BrandonSelector(self.config)
             model, idx = selector.fit(X_scaled, y)
         elif winner == "Lasso":
-            model = LassoCV(
-                cv=self.config.LASSO_CV_FOLDS,
-                max_iter=self.config.LASSO_MAX_ITER,
-                random_state=self.config.RANDOM_SEED,
-                selection=self.config.LASSO_SELECTION,
-                tol=self.config.LASSO_TOL,
-            ).fit(X_scaled, y)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                model = LassoCV(
+                    cv=self.config.LASSO_CV_FOLDS,
+                    max_iter=self.config.LASSO_MAX_ITER,
+                    random_state=self.config.RANDOM_SEED,
+                    selection=self.config.LASSO_SELECTION,
+                    tol=self.config.LASSO_TOL,
+                ).fit(X_scaled, y)
             idx = list(range(X_scaled.shape[1]))
         elif winner == "OLS(SBP)":
             model = LinearRegression().fit(X_scaled[:, [0]], y)
