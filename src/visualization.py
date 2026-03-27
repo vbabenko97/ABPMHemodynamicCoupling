@@ -6,11 +6,13 @@ Generates all research figures with consistent styling.
 """
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
 
 from .config import Columns, Config
 from .feature_engineering import DBPFeatureExtractor
@@ -30,13 +32,16 @@ class FigureGenerator(ABC):
         self.config = config
     
     @abstractmethod
-    def generate(self, df: pd.DataFrame, res_df: pd.DataFrame) -> None:
+    def generate(
+        self, df: pd.DataFrame, res_df: pd.DataFrame, *, save: bool = True
+    ) -> Optional[Figure]:
         """
-        Generate and save figure.
-        
+        Generate figure, optionally saving to disk.
+
         Args:
             df: Monitoring data DataFrame
             res_df: Per-subject results DataFrame
+            save: If True, save to disk and close. If False, return the Figure.
         """
         pass
 
@@ -44,9 +49,11 @@ class FigureGenerator(ABC):
 class Figure2Generator(FigureGenerator):
     """Generates Figure 2: Dot plots for Anomaly and DeltaBias."""
     
-    def generate(self, df: pd.DataFrame, res_df: pd.DataFrame) -> None:
+    def generate(
+        self, df: pd.DataFrame, res_df: pd.DataFrame, *, save: bool = True
+    ) -> Optional[Figure]:
         """Generate Figure 2: MAE inflation and signed residual bias dot plots.
-        
+
         Uses distinct markers for Screen-Positive vs Screen-Negative participants.
         """
         # Use only subjects with valid task data
@@ -111,17 +118,22 @@ class Figure2Generator(FigureGenerator):
             ax.legend(fontsize=11, loc='best', frameon=True)
             ax.grid(True, alpha=0.2, axis='y')
         
-        plt.tight_layout()
-        save_path = self.config.get_results_path(self.config.FIGURE_2_OUTPUT)
-        plt.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
-        plt.close()
-        print(f"Figure 2 saved: {save_path}")
+        fig.tight_layout()
+        if save:
+            save_path = self.config.get_results_path(self.config.FIGURE_2_OUTPUT)
+            fig.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Figure 2 saved: {save_path}")
+            return None
+        return fig
 
 
 class Figure3Generator(FigureGenerator):
     """Generates Figure 3: Observed vs Predicted DBP for case studies."""
     
-    def generate(self, df: pd.DataFrame, res_df: pd.DataFrame) -> None:
+    def generate(
+        self, df: pd.DataFrame, res_df: pd.DataFrame, *, save: bool = True
+    ) -> Optional[Figure]:
         """Generate Figure 3: Observed vs Predicted DBP scatter plots."""
         subject_ids = [36, 35]
         titles = [
@@ -204,17 +216,22 @@ class Figure3Generator(FigureGenerator):
             ax.legend(fontsize=11, loc='lower right')
             ax.grid(True, alpha=0.2)
         
-        plt.tight_layout()
-        save_path = self.config.get_results_path(self.config.FIGURE_3_OUTPUT)
-        plt.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
-        plt.close()
-        print(f"Figure 3 saved: {save_path}")
+        fig.tight_layout()
+        if save:
+            save_path = self.config.get_results_path(self.config.FIGURE_3_OUTPUT)
+            fig.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Figure 3 saved: {save_path}")
+            return None
+        return fig
 
 
 class Figure4Generator(FigureGenerator):
     """Generates Figure 4: Time-series residuals for case studies."""
     
-    def generate(self, df: pd.DataFrame, res_df: pd.DataFrame) -> None:
+    def generate(
+        self, df: pd.DataFrame, res_df: pd.DataFrame, *, save: bool = True
+    ) -> Optional[Figure]:
         """Generate Figure 4: Time-series with residuals."""
         subject_ids = [37, 39]
         titles = [
@@ -295,11 +312,14 @@ class Figure4Generator(FigureGenerator):
             if i == 0:
                 ax_top.legend(fontsize=11, loc='upper left')
         
-        plt.tight_layout()
-        save_path = self.config.get_results_path(self.config.FIGURE_4_OUTPUT)
-        plt.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
-        plt.close()
-        print(f"Figure 4 saved: {save_path}")
+        fig.tight_layout()
+        if save:
+            save_path = self.config.get_results_path(self.config.FIGURE_4_OUTPUT)
+            fig.savefig(save_path, dpi=self.config.FIGURE_DPI, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Figure 4 saved: {save_path}")
+            return None
+        return fig
 
 
 class VisualizationManager:
@@ -336,3 +356,18 @@ class VisualizationManager:
                 generator.generate(df, res_df)
             except Exception as e:
                 print(f"Error generating {generator.__class__.__name__}: {e}")
+
+    def generate_all_figures(
+        self, df: pd.DataFrame, res_df: pd.DataFrame
+    ) -> dict[str, Figure]:
+        """Generate all figures and return them without saving to disk."""
+        figures: dict[str, Figure] = {}
+        names = ["dotplots", "obs_vs_pred", "timeseries_residuals"]
+        for generator, name in zip(self.generators, names, strict=False):
+            try:
+                fig = generator.generate(df, res_df, save=False)
+                if fig is not None:
+                    figures[name] = fig
+            except Exception as e:
+                print(f"Error generating {generator.__class__.__name__}: {e}")
+        return figures

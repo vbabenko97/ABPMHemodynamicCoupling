@@ -6,3 +6,4 @@ matplotlib>=3.7.0
 statsmodels>=0.14.0
 openpyxl>=3.1.0  # For reading Excel files
 python-pptx>=0.6.23
+streamlit>=1.28.0
