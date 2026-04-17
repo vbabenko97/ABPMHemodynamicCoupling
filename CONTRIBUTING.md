@@ -13,6 +13,14 @@ python -m pytest
 ruff check .
 ```
 
+## Repository Boundaries
+
+- Put reusable pipeline logic in `src/`.
+- Keep thesis-only or paper-specific helpers in `analysis/`.
+- Keep repeatable maintenance helpers in `scripts/`, not in the repository root.
+- Treat notebooks as exploratory artifacts. If notebook logic becomes required for the workflow, move it into Python modules and test it.
+- Commit only intentional research artifacts under `results/`. Do not commit temporary exports, lock files, cache directories, or OS metadata.
+
 ## Change Rules
 
 - Do not change the 6D DBP feature space without a documented scientific rationale.

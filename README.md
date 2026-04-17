@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![CI](https://github.com/vbabenko97/ABPMHemodynamicCoupling/actions/workflows/ci.yml/badge.svg)](https://github.com/vbabenko97/ABPMHemodynamicCoupling/actions/workflows/ci.yml)
 
-ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-linked blood pressure relationship shifts in ambulatory blood pressure monitoring (ABPM) data. The repository supports the IEEE ELNANO 2026 project context and reproduces the subject-level modeling, cohort-level summaries, and publication figures used in the study workflow.
+ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-linked blood pressure relationship shifts in ambulatory blood pressure monitoring (ABPM) data. The repository supports the IEEE ELNANO 2026 project context and reproduces the subject-level modeling, cohort-level summaries, publication figures, and Streamlit review workflow used in the study.
 
 ## Authors
 
@@ -28,18 +28,22 @@ ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-lin
 
 ```text
 ABPMHemodynamicCoupling/
-├── app.py                       # Streamlit web app (interactive MVP)
-├── src/                         # Analysis package
-├── data/                        # Input data (not committed)
-├── results/                     # Generated outputs
+├── src/                         # Reusable analysis package
+├── analysis/                    # Thesis- and publication-specific helpers
+├── app.py                       # Streamlit app entry point
+├── pages/                       # Streamlit multipage views
+├── run_pipeline.py              # Batch analysis entry point
+├── scripts/                     # Repeatable helper scripts
 ├── tests/                       # Regression and smoke tests
-├── logo/                        # Project assets
-├── .github/                     # CI and issue templates
-├── generate_presentation.py     # IEEE ELNANO 2026 slide builder
-├── run_pipeline.py              # Main orchestration entry point
-├── pyproject.toml               # Package and tool configuration
-└── requirements.txt             # Minimal runtime dependencies
+├── data/                        # Local input datasets and notes
+├── results/                     # Generated outputs and versioned research artifacts
+├── docs/                        # Papers, drafts, and conference material
+├── notebooks/                   # Exploratory notebooks
+├── .github/                     # CI, issue templates, ownership metadata
+└── pyproject.toml               # Package and tool configuration
 ```
+
+See [docs/REPOSITORY_LAYOUT.md](docs/REPOSITORY_LAYOUT.md) for the operating conventions behind this split.
 
 ## Installation
 
@@ -55,7 +59,7 @@ python -m pip install -e .[dev]
 ### Requirements
 
 - Python 3.10 or newer
-- CSV input files placed under `data/`
+- input CSV or XLSX files placed under `data/`
 
 ## Usage
 
@@ -105,6 +109,18 @@ In the Streamlit app, the same analysis is exposed through three tabs:
 - `Метрики учасників` with localized per-subject results and CSV export
 - `Графіки` with the generated analysis figures
 
+## Development
+
+Install the development extras and run the standard checks:
+
+```bash
+python -m pip install -e .[dev]
+python -m pytest
+ruff check .
+```
+
+Use `uv.lock` as the canonical lockfile for reproducible local environments. `requirements.txt` and `requirements-thesis.txt` remain lightweight compatibility lists.
+
 ## Reproducibility
 
 - Core configuration lives in `src/config.py`.
@@ -129,6 +145,10 @@ If you use this repository in academic work, cite the project metadata in `CITAT
 ## Contributing
 
 Bug reports and focused pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for the local workflow and development expectations.
+
+## Security
+
+For security-sensitive reports or accidental data exposure, use the private reporting path described in [SECURITY.md](SECURITY.md).
 
 ## License
 

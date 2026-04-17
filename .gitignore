@@ -1,61 +1,47 @@
-# Auto-generated
-__pycache__/
-*.py[cod]
-*$py.class
+# OS and editor cruft
 .DS_Store
-
-# IDE
+Thumbs.db
 .idea/
 .vscode/
 *.swp
+*.swo
+
+# Python bytecode and build metadata
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
 
 # Python tooling
 .pytest_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 htmlcov/
+.venv/
+.ipynb_checkpoints/
 
-# Results and intermediate files (optional - uncomment to track)
-# results/
-
-scripts/
+# Local temporary files
 tmp/
 *.tmp
 .~lock.*
 
-# Large binary and document files
-/.ipynb_checkpoints
-/Appendix.docx
-/Brandon.pptx
-/BrandonOriginal.pdf
-/Images
-/Metadata
-/NATO2025-Problem-Solution-Final.docx
-/Nastenko et al 2025_09_05.docx
-/System.docx
-/archive
-/description.docx
-/girls girls girls
-/new_results.pptx
-/prompt.docx
-/prompt_copy.docx
-/Доклад.docx
-data/
+# Local analysis and presentation exports
 /presentation.pdf
 /presentation.pptx
+/results/presentation_*.png
 /results/fig1.pdf
 /results/fig1.png
 /results/fig1_data.csv
-/results/presentation_*.png
 
-docs/ieee-elnano/
-
-# Claude
+# Local workspace and agent metadata
 .claude/
 .mcp.json
 prompts/
-
-# BMAD 
 _bmad/
 _bmad-output/
 .agents/
+gpt-pro/
