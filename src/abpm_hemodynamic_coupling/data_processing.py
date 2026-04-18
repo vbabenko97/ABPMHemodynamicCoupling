@@ -169,6 +169,24 @@ class DataValidator:
         
         return True
 
+    @staticmethod
+    def sanitize_monitoring_data(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+        """Drop rows with non-finite or out-of-range hemodynamic values."""
+        sanitized = df.copy()
+        initial_len = len(sanitized)
+
+        bounds = [
+            (Columns.SBP, Config.MIN_SBP, Config.MAX_SBP),
+            (Columns.DBP, Config.MIN_DBP, Config.MAX_DBP),
+            (Columns.HR, Config.MIN_HR, Config.MAX_HR),
+        ]
+
+        for column, lower, upper in bounds:
+            sanitized = sanitized[np.isfinite(sanitized[column])]
+            sanitized = sanitized[(sanitized[column] >= lower) & (sanitized[column] <= upper)]
+
+        return sanitized, initial_len - len(sanitized)
+
 
 class DataLoader:
     """Handles loading data from various sources."""
@@ -193,6 +211,19 @@ class DataLoader:
         
         print(f"Loading monitoring data from {filepath}...")
         df = pd.read_csv(filepath)
+
+        required_cols = [Columns.PAT_ID, Columns.TIME, Columns.SBP, Columns.DBP, Columns.HR]
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            raise ValueError(f"Missing required columns: {missing_cols}")
+
+        for col in [Columns.SBP, Columns.DBP, Columns.HR]:
+            if not pd.api.types.is_numeric_dtype(df[col]):
+                raise ValueError(f"Column {col} must be numeric")
+
+        df, removed_n = DataValidator.sanitize_monitoring_data(df)
+        if removed_n:
+            print(f"Dropped {removed_n} out-of-range monitoring rows before analysis.")
         
         # Validate
         DataValidator.validate_monitoring_data(df)

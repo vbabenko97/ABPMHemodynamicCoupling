@@ -45,3 +45,25 @@ def test_validate_monitoring_data_rejects_out_of_range_values() -> None:
 
     with pytest.raises(ValueError, match="SBP"):
         DataValidator.validate_monitoring_data(df)
+
+
+def test_sanitize_monitoring_data_drops_out_of_range_rows() -> None:
+    df = pd.DataFrame(
+        {
+            Columns.PAT_ID: [1, 1, 1],
+            Columns.TIME: [
+                "2026-01-01 08:00:00",
+                "2026-01-01 08:30:00",
+                "2026-01-01 09:00:00",
+            ],
+            Columns.SBP: [120, 400, 118],
+            Columns.DBP: [78, 80, 20],
+            Columns.HR: [68, 70, 71],
+        }
+    )
+
+    cleaned, removed_n = DataValidator.sanitize_monitoring_data(df)
+
+    assert removed_n == 2
+    assert len(cleaned) == 1
+    assert cleaned.iloc[0][Columns.SBP] == 120
