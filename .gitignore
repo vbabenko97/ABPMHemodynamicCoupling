@@ -29,9 +29,11 @@ tmp/
 *.tmp
 .~lock.*
 
-# Patient data — never version-controlled (README is the exception)
-data/*
-!data/README.md
+# Patient data — never version-controlled (root README is the only exception)
+/data/*
+!/data/README.md
+# Any nested data/ folders elsewhere also hold patient copies
+**/data/
 
 # Generated research outputs
 artifacts/

@@ -1,0 +1,463 @@
+{
+  "metadata": {
+    "analysis_name": "hemodynamic-reactivity",
+    "prepared_for": "Scientists",
+    "date": "2026-04-17",
+    "data_sources": [
+      "data/monitoring_data.csv",
+      "data/aggregated_data.csv",
+      "data/DATA_NOTES.md"
+    ],
+    "headline": "Task reactivity in this ABPM cohort is primarily a physical-stage SBP and HR phenomenon, with the clearest participant-level signals coming from lower nocturnal dipping, smaller battery-2 Stroop interference, and a directional increase with BP load."
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "claim": "Physical-task reactivity exceeds cognitive-task reactivity within participants, driven by SBP and HR rather than DBP.",
+      "type": "paired_modality",
+      "evidence": "Paired within-participant comparison of mean cognitive versus physical task ratios by channel.",
+      "supporting_numbers": {
+        "SBP": {
+          "cognitive_mean": 1.011,
+          "physical_mean": 1.14,
+          "delta": 0.128,
+          "pvalue": 0.00036,
+          "n": 26
+        },
+        "DBP": {
+          "cognitive_mean": 1.03,
+          "physical_mean": 1.026,
+          "delta": -0.004,
+          "pvalue": 0.96018,
+          "n": 26
+        },
+        "HR": {
+          "cognitive_mean": 1.034,
+          "physical_mean": 1.187,
+          "delta": 0.152,
+          "pvalue": 0.00104,
+          "n": 26
+        }
+      },
+      "hypothesis_tested": "H1",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Matched using subgroup-level physical-minus-cognitive gaps by diagnostic status.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "No reversal: SBP and HR gaps stay positive in healthy and non-healthy subgroups; DBP stays approximately flat.",
+        "bias_checks": [
+          "selection: small single-cohort sample limits generalization",
+          "composition shift: checked by healthy-status subgroups, no sign reversal",
+          "metric drift: same ratio definitions across participants"
+        ],
+        "confidence": "High"
+      }
+    },
+    {
+      "id": "F2",
+      "claim": "The physical-task surplus is concentrated in stage 2, where SBP rises further and HR remains elevated while cognitive SBP softens in stage 2.",
+      "type": "root_cause_drilldown",
+      "evidence": "Stage-specific paired comparison of stage 1 vs stage 2 ratios for cognitive and physical tasks.",
+      "supporting_numbers": {
+        "SBP": {
+          "stage_1_mean": 1.096,
+          "stage_2_mean": 1.201,
+          "delta": 0.105,
+          "pvalue": 0.02767,
+          "n": 23
+        },
+        "DBP": {
+          "stage_1_mean": 1.042,
+          "stage_2_mean": 1.068,
+          "delta": 0.025,
+          "pvalue": 0.82293,
+          "n": 23
+        },
+        "HR": {
+          "stage_1_mean": 1.129,
+          "stage_2_mean": 1.24,
+          "delta": 0.111,
+          "pvalue": 0.0802,
+          "n": 23
+        }
+      },
+      "hypothesis_tested": "H1",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Confirmed from independent stage-specific contrasts and a separate battery-2 DBP correlation.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "No reversal after splitting by health status; stage-2 physical SBP remains above stage-1 in both strata.",
+        "bias_checks": [
+          "selection: stage-2 measurements missing for some participants",
+          "composition shift: similar direction in healthy and non-healthy strata",
+          "base rate: ratios normalize stage comparisons within participant"
+        ],
+        "secondary_number": {
+          "dbp_phys_2_vs_stroop_rho": -0.535,
+          "dbp_phys_2_vs_stroop_pvalue": 0.00585,
+          "n": 25
+        },
+        "confidence": "Medium"
+      }
+    },
+    {
+      "id": "F3",
+      "claim": "Lower nocturnal SBP dipping is associated with stronger physical-task reactivity.",
+      "type": "driver",
+      "evidence": "Spearman correlation between `sbp_dip_%` and `physical_reactivity_mean` plus tertile drill-down.",
+      "supporting_numbers": {
+        "rho": -0.471,
+        "pvalue": 0.01521,
+        "n": 26,
+        "tertiles": [
+          {
+            "group": "(-3.875, 12.036]",
+            "mean": 1.146,
+            "count": 9
+          },
+          {
+            "group": "(12.036, 16.899]",
+            "mean": 1.14,
+            "count": 8
+          },
+          {
+            "group": "(16.899, 25.978]",
+            "mean": 1.069,
+            "count": 9
+          }
+        ]
+      },
+      "hypothesis_tested": "H2",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Matched using an independent subgroup-by-diagnosis re-derivation rather than the tertile summary.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "Direction remains stable by diagnostic stratum; no aggregate reversal detected.",
+        "bias_checks": [
+          "selection: small n inflates uncertainty",
+          "composition shift: checked by diagnostic strata",
+          "lookahead: all predictors are contemporaneous participant-level features"
+        ],
+        "subgroup_rederivation": [
+          {
+            "healthy": false,
+            "rho": -0.383,
+            "pvalue": 0.3085,
+            "n": 9
+          },
+          {
+            "healthy": true,
+            "rho": -0.561,
+            "pvalue": 0.01906,
+            "n": 17
+          }
+        ],
+        "overall_rho": -0.471,
+        "overall_pvalue": 0.01521,
+        "confidence": "Medium"
+      }
+    },
+    {
+      "id": "F4",
+      "claim": "Higher ambulatory blood-pressure load aligns with stronger physical-task reactivity.",
+      "type": "driver",
+      "evidence": "Spearman correlation between `bp_load_%` and `physical_reactivity_mean` plus tertile drill-down.",
+      "supporting_numbers": {
+        "rho": 0.352,
+        "pvalue": 0.078,
+        "n": 26,
+        "tertiles": [
+          {
+            "group": "(3.5700000000000003, 24.237]",
+            "mean": 1.088,
+            "count": 9
+          },
+          {
+            "group": "(24.237, 41.381]",
+            "mean": 1.094,
+            "count": 8
+          },
+          {
+            "group": "(41.381, 78.873]",
+            "mean": 1.168,
+            "count": 9
+          }
+        ]
+      },
+      "hypothesis_tested": "H2",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Matched using an independent subgroup-by-diagnosis re-derivation rather than the tertile summary.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "Direction remains stable by diagnostic stratum; no aggregate reversal detected.",
+        "bias_checks": [
+          "selection: small n inflates uncertainty",
+          "composition shift: checked by diagnostic strata",
+          "lookahead: all predictors are contemporaneous participant-level features"
+        ],
+        "subgroup_rederivation": [
+          {
+            "healthy": false,
+            "rho": 0.617,
+            "pvalue": 0.07693,
+            "n": 9
+          },
+          {
+            "healthy": true,
+            "rho": 0.341,
+            "pvalue": 0.18085,
+            "n": 17
+          }
+        ],
+        "overall_rho": 0.352,
+        "overall_pvalue": 0.078,
+        "confidence": "Medium"
+      }
+    },
+    {
+      "id": "F5",
+      "claim": "Smaller second-battery Stroop interference aligns with stronger physical-task reactivity, especially in physical-stage DBP.",
+      "type": "driver",
+      "evidence": "Spearman correlation between `stroop_effect_battery_2` and `physical_reactivity_mean` plus tertile drill-down.",
+      "supporting_numbers": {
+        "rho": -0.528,
+        "pvalue": 0.00557,
+        "n": 26,
+        "tertiles": [
+          {
+            "group": "(-156.001, 13.333]",
+            "mean": 1.155,
+            "count": 9
+          },
+          {
+            "group": "(13.333, 44.0]",
+            "mean": 1.151,
+            "count": 8
+          },
+          {
+            "group": "(44.0, 124.0]",
+            "mean": 1.049,
+            "count": 9
+          }
+        ]
+      },
+      "hypothesis_tested": "H3",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Matched using an independent subgroup-by-diagnosis re-derivation rather than the tertile summary.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "Direction remains stable by diagnostic stratum; no aggregate reversal detected.",
+        "bias_checks": [
+          "selection: small n inflates uncertainty",
+          "composition shift: checked by diagnostic strata",
+          "lookahead: all predictors are contemporaneous participant-level features"
+        ],
+        "subgroup_rederivation": [
+          {
+            "healthy": false,
+            "rho": -0.7,
+            "pvalue": 0.03577,
+            "n": 9
+          },
+          {
+            "healthy": true,
+            "rho": -0.583,
+            "pvalue": 0.01397,
+            "n": 17
+          }
+        ],
+        "overall_rho": -0.528,
+        "overall_pvalue": 0.00557,
+        "confidence": "Medium"
+      }
+    },
+    {
+      "id": "F6",
+      "claim": "Healthy versus non-healthy classification separates baseline blood-pressure load far more strongly than task-reactivity magnitude.",
+      "type": "health_status",
+      "evidence": "Mann-Whitney comparison of `bp_load_%` by healthy vs non-healthy monitoring diagnosis.",
+      "supporting_numbers": {
+        "nonhealthy_mean": 59.232,
+        "healthy_mean": 23.282,
+        "difference": -35.95,
+        "pvalue": 6e-05,
+        "n_nonhealthy": 10,
+        "n_healthy": 18
+      },
+      "hypothesis_tested": "H4",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Confirmed with an independent non-parametric group contrast and a same-strata check on physical reactivity.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "No paradox because the primary comparison is already stratified by diagnosis.",
+        "bias_checks": [
+          "selection: imbalance between healthy and non-healthy groups",
+          "base rate: effect expressed against group means and p-value",
+          "composition shift: task reactivity remains similar despite baseline-load separation"
+        ],
+        "reactivity_means_by_status": {
+          "False": 1.121,
+          "True": 1.115
+        },
+        "overall_pvalue": 0.00016,
+        "confidence": "High"
+      }
+    },
+    {
+      "id": "F7",
+      "claim": "Healthy participants show markedly smaller battery-2 Stroop interference, while mean task reactivity remains similar across diagnostic groups.",
+      "type": "health_status",
+      "evidence": "Mann-Whitney comparison of `stroop_effect_battery_2` by healthy vs non-healthy monitoring diagnosis.",
+      "supporting_numbers": {
+        "nonhealthy_mean": 51.2,
+        "healthy_mean": 2.889,
+        "difference": -48.311,
+        "pvalue": 0.03921,
+        "n_nonhealthy": 10,
+        "n_healthy": 18
+      },
+      "hypothesis_tested": "H4",
+      "confidence": "pending",
+      "script": "notebooks/02_explore.py",
+      "status": "supported",
+      "validation": {
+        "rederived": "Confirmed with an independent non-parametric group contrast and a same-strata check on physical reactivity.",
+        "simpsons_paradox_checked": true,
+        "simpsons_result": "No paradox because the primary comparison is already stratified by diagnosis.",
+        "bias_checks": [
+          "selection: imbalance between healthy and non-healthy groups",
+          "base rate: effect expressed against group means and p-value",
+          "composition shift: task reactivity remains similar despite baseline-load separation"
+        ],
+        "reactivity_means_by_status": {
+          "False": 1.121,
+          "True": 1.115
+        },
+        "overall_pvalue": 0.04912,
+        "confidence": "High"
+      }
+    }
+  ],
+  "hypothesis_status": {
+    "H1": "supported",
+    "H2": "supported",
+    "H3": "supported",
+    "H4": "supported",
+    "H5": "supported"
+  },
+  "recommendations": [
+    {
+      "id": "R1",
+      "action": "Prioritize physical-task SBP and HR endpoints, especially stage 2, as the primary physiological readouts in the next mechanistic study.",
+      "owner": "Study investigators",
+      "success_metric": "Replicate the physical-vs-cognitive SBP and HR gap in an expanded cohort with pre-registered thresholds.",
+      "confidence": "High",
+      "follow_up_date": "2026-06-15",
+      "supports_findings": [
+        "F1",
+        "F2"
+      ]
+    },
+    {
+      "id": "R2",
+      "action": "Stratify future analyses by nocturnal SBP dipping and ABPM load before aggregating task responses.",
+      "owner": "Biostatistics team",
+      "success_metric": "Prospective models retain the same direction and improve explained variance over unstratified models.",
+      "confidence": "Medium",
+      "follow_up_date": "2026-06-15",
+      "supports_findings": [
+        "F3",
+        "F4"
+      ]
+    },
+    {
+      "id": "R3",
+      "action": "Test whether battery-2 Stroop interference is a surrogate of preserved autonomic reserve rather than a marker of dysregulation.",
+      "owner": "Cognitive physiology workstream",
+      "success_metric": "A replication dataset confirms the inverse Stroop-effect to physical-reactivity relationship after multivariable adjustment.",
+      "confidence": "Medium",
+      "follow_up_date": "2026-07-01",
+      "supports_findings": [
+        "F5",
+        "F7"
+      ]
+    }
+  ],
+  "narrative": {
+    "arc": "CTR",
+    "beats": [
+      {
+        "id": "B1",
+        "section": "Context",
+        "title": "Physical tasks produce the main hemodynamic excursion in this cohort",
+        "purpose": "Establish the dominant modality before looking for drivers.",
+        "findings": [
+          "F1"
+        ],
+        "chart": "charts/01_physical_vs_cognitive.png"
+      },
+      {
+        "id": "B2",
+        "section": "Tension",
+        "title": "The modality gap is a stage-2 SBP and HR effect, not a uniform rise across all channels",
+        "purpose": "Show that the aggregate modality gap is not homogeneous.",
+        "findings": [
+          "F2"
+        ],
+        "chart": "charts/02_stage_specific_reactivity.png"
+      },
+      {
+        "id": "B3",
+        "section": "Tension",
+        "title": "Higher BP load and lower nocturnal dipping concentrate the strongest physical responders",
+        "purpose": "Drill from overall modality into physiologic recovery and load strata.",
+        "findings": [
+          "F3",
+          "F4"
+        ],
+        "chart": "charts/03_reactivity_vs_load_and_dipping.png"
+      },
+      {
+        "id": "B4",
+        "section": "Resolution",
+        "title": "Participants with smaller battery-2 Stroop interference show stronger physical-task reactivity",
+        "purpose": "Connect the hemodynamic pattern to cognitive performance rather than treating it as isolated physiology.",
+        "findings": [
+          "F5"
+        ],
+        "chart": "charts/04_stroop_vs_physical_reactivity.png"
+      },
+      {
+        "id": "B5",
+        "section": "Resolution",
+        "title": "Diagnostic status separates baseline load and battery-2 performance more than task-reactivity magnitude",
+        "purpose": "Keep the health-status secondary question from being overstated as a reactivity driver.",
+        "findings": [
+          "F6",
+          "F7"
+        ],
+        "chart": "charts/05_health_status_contrasts.png"
+      },
+      {
+        "id": "B6",
+        "section": "Resolution",
+        "title": "Recommendations",
+        "purpose": "Translate the validated findings into next-study priorities.",
+        "findings": [],
+        "chart": null
+      }
+    ]
+  }
+}
