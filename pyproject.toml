@@ -74,7 +74,13 @@ testpaths = ["tests"]
 pythonpath = [".", "src"]
 
 [tool.ruff]
-extend-exclude = ["scripts/generate_presentation.py"]
+# analysis/ holds study-specific scripts and notebooks with research-code
+# conventions that diverge from the main package; lint them manually when
+# stabilizing, not on every CI run.
+extend-exclude = [
+  "analysis/",
+  "scripts/generate_presentation.py",
+]
 line-length = 100
 target-version = "py310"
 
