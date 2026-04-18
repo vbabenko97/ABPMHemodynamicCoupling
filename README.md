@@ -29,16 +29,21 @@ ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-lin
 ```text
 ABPMHemodynamicCoupling/
 ├── src/                         # Reusable analysis package
-├── analysis/                    # Thesis- and publication-specific helpers
+├── analysis/                    # Study-specific analysis code and notebooks
+│   ├── thesis/                  # Thesis-track stats helpers and EDA notebooks
+│   └── hemodynamic_reactivity/  # Hemodynamic-reactivity sub-analysis
 ├── app.py                       # Streamlit app entry point
 ├── pages/                       # Streamlit multipage views
 ├── run_pipeline.py              # Batch analysis entry point
 ├── scripts/                     # Repeatable helper scripts
 ├── tests/                       # Regression and smoke tests
-├── data/                        # Local input datasets and notes
-├── results/                     # Generated outputs and versioned research artifacts
+├── data/                        # Local input datasets (gitignored)
+├── results/                     # Committed research outputs
+├── artifacts/                   # Larger generated outputs (gitignored)
 ├── docs/                        # Papers, drafts, and conference material
-├── notebooks/                   # Exploratory notebooks
+│   ├── ieee_elnano/             # IEEE ELNANO 2026 paper and presentation
+│   └── thesis/                  # Ukrainian thesis drafts, figures, tables
+├── assets/                      # Logo and static assets
 ├── .github/                     # CI, issue templates, ownership metadata
 └── pyproject.toml               # Package and tool configuration
 ```
