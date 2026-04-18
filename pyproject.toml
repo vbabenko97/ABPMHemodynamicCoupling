@@ -64,7 +64,7 @@ abpm-hemodynamic-pipeline = "run_pipeline:main"
 
 [tool.setuptools]
 packages = ["src"]
-py-modules = ["run_pipeline", "generate_presentation"]
+py-modules = ["run_pipeline"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
@@ -72,7 +72,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 
 [tool.ruff]
-extend-exclude = ["generate_presentation.py"]
+extend-exclude = ["scripts/generate_presentation.py"]
 line-length = 100
 target-version = "py310"
 

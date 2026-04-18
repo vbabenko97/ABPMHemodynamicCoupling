@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
+  <img src="assets/logo/abpm_analysis.png" alt="ABPM Analysis Logo" width="200"/>
 </p>
 
 # ABPM Hemodynamic Coupling
