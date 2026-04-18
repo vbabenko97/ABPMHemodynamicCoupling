@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from src.config import Columns
-from src.data_processing import DataValidator, Labeler
+from abpm_hemodynamic_coupling.config import Columns
+from abpm_hemodynamic_coupling.data_processing import DataValidator, Labeler
 
 
 def test_apply_hierarchy_prioritizes_air_alert() -> None:

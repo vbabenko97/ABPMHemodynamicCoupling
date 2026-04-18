@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from src.config import Columns, Config
-from src.feature_engineering import DBPFeatureExtractor
+from abpm_hemodynamic_coupling.config import Columns, Config
+from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor
 
 
 def test_dbp_feature_extractor_returns_expected_six_features() -> None:

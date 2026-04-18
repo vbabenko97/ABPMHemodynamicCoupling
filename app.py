@@ -11,7 +11,7 @@ Usage:
 import pandas as pd
 import streamlit as st
 
-from src.web_pipeline import PipelineResults, WebPipeline
+from abpm_hemodynamic_coupling.web_pipeline import PipelineResults, WebPipeline
 
 # ---------------------------------------------------------------------------
 # Page config

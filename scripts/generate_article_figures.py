@@ -10,10 +10,10 @@ import pandas as pd
 PROJECT_ROOT = "/Users/vitaliibabenko/babenko-dev/ABPMHemodynamicCoupling"
 sys.path.insert(0, PROJECT_ROOT)
 
-from src.config import Columns, Config  # noqa: E402
-from src.data_processing import DataLoader  # noqa: E402
-from src.feature_engineering import DBPFeatureExtractor  # noqa: E402
-from src.modeling import CrossValidator, ModelTrainer  # noqa: E402
+from abpm_hemodynamic_coupling.config import Columns, Config  # noqa: E402
+from abpm_hemodynamic_coupling.data_processing import DataLoader  # noqa: E402
+from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor  # noqa: E402
+from abpm_hemodynamic_coupling.modeling import CrossValidator, ModelTrainer  # noqa: E402
 
 OUTPUT_DIR = f"{PROJECT_ROOT}/docs/thesis/figures"
 

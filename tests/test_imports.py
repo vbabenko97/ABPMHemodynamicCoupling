@@ -1,5 +1,11 @@
 def test_src_package_exports_core_symbols() -> None:
-    from src import Columns, Config, ModelPerformance, StatisticalResult, SubjectResult
+    from abpm_hemodynamic_coupling import (
+        Columns,
+        Config,
+        ModelPerformance,
+        StatisticalResult,
+        SubjectResult,
+    )
 
     assert Config is not None
     assert Columns is not None

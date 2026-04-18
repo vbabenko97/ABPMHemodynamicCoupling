@@ -63,13 +63,15 @@ Repository = "https://github.com/vbabenko97/ABPMHemodynamicCoupling"
 abpm-hemodynamic-pipeline = "run_pipeline:main"
 
 [tool.setuptools]
-packages = ["src"]
 py-modules = ["run_pipeline"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = [".", "src"]
 
 [tool.ruff]
 extend-exclude = ["scripts/generate_presentation.py"]

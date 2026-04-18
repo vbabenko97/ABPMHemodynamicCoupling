@@ -14,12 +14,17 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
+from abpm_hemodynamic_coupling.config import Columns, Config
+from abpm_hemodynamic_coupling.data_processing import DataValidator, Labeler
+from abpm_hemodynamic_coupling.stats_analysis import (
+    CorrelationAnalyzer,
+    DistributionAnalyzer,
+    MultipleTestingCorrector,
+)
+from abpm_hemodynamic_coupling.visualization import VisualizationManager
+
 # SubjectAnalyzer and CohortAnalyzer live in run_pipeline.py
 from run_pipeline import CohortAnalyzer, SubjectAnalyzer
-from src.config import Columns, Config
-from src.data_processing import DataValidator, Labeler
-from src.stats_analysis import CorrelationAnalyzer, DistributionAnalyzer, MultipleTestingCorrector
-from src.visualization import VisualizationManager
 
 DISPLAY_LABELS = {
     Columns.LABEL_AIR_ALERT: "Повітряна тривога",

@@ -6,7 +6,6 @@ Uses the same 3-fold temporal block CV as the main pipeline.
 
 import sys
 import warnings
-from itertools import combinations
 
 import numpy as np
 import pandas as pd
@@ -19,10 +18,10 @@ from sklearn.preprocessing import StandardScaler
 PROJECT_ROOT = "/Users/vitaliibabenko/babenko-dev/ABPMHemodynamicCoupling"
 sys.path.insert(0, PROJECT_ROOT)
 
-from src.config import Columns, Config
-from src.data_processing import DataLoader
-from src.feature_engineering import DBPFeatureExtractor
-from src.modeling import BrandonSelector
+from abpm_hemodynamic_coupling.config import Columns, Config  # noqa: E402
+from abpm_hemodynamic_coupling.data_processing import DataLoader  # noqa: E402
+from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor  # noqa: E402
+from abpm_hemodynamic_coupling.modeling import BrandonSelector  # noqa: E402
 
 FEATURE_NAMES = ["SBP", "HR", "1/SBP", "1/HR", "SBP×HR", "1/(SBP×HR)"]
 
@@ -85,7 +84,7 @@ def cv_mae_lasso(X_raw, y, config):
                 ).fit(X_train, y[train_ix])
             pred = model.predict(X_val)
             maes.append(mean_absolute_error(y[val_ix], pred))
-        except (Exception,):
+        except Exception:
             maes.append(np.nan)
     valid = [m for m in maes if not np.isnan(m)]
     return np.mean(valid) if valid else np.inf
@@ -165,7 +164,6 @@ def main():
             continue
         med_diff = np.median(valid)
         brandon_wins = (valid < 0).sum()
-        other_wins = (valid > 0).sum()
         try:
             stat, p = stats.wilcoxon(valid)
         except ValueError:

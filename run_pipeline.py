@@ -20,18 +20,18 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mannwhitneyu
 
-from src.config import Columns, Config
-from src.data_processing import DataLoader
-from src.feature_engineering import DBPFeatureExtractor
-from src.modeling import CrossValidator, ModelTrainer
-from src.models import ConditionMetrics, SubjectResult
-from src.stats_analysis import (
+from abpm_hemodynamic_coupling.config import Columns, Config
+from abpm_hemodynamic_coupling.data_processing import DataLoader
+from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor
+from abpm_hemodynamic_coupling.modeling import CrossValidator, ModelTrainer
+from abpm_hemodynamic_coupling.models import ConditionMetrics, SubjectResult
+from abpm_hemodynamic_coupling.stats_analysis import (
     CorrelationAnalyzer,
     DistributionAnalyzer,
     MultipleTestingCorrector,
 )
-from src.utils import ProgressTracker
-from src.visualization import VisualizationManager
+from abpm_hemodynamic_coupling.utils import ProgressTracker
+from abpm_hemodynamic_coupling.visualization import VisualizationManager
 
 # Suppress known noisy warnings without hiding all diagnostics
 warnings.filterwarnings("ignore", category=FutureWarning)
