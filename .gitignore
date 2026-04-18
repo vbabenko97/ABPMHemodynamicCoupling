@@ -29,6 +29,14 @@ tmp/
 *.tmp
 .~lock.*
 
+# Patient data — never version-controlled (README is the exception)
+data/*
+!data/README.md
+
+# Generated research outputs
+artifacts/
+/results/thesis/
+
 # Local analysis and presentation exports
 /presentation.pdf
 /presentation.pptx
