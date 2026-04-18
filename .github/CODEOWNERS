@@ -1,2 +1,26 @@
-# Default ownership for repository changes
+# Code ownership and review routing
+#
+# The repository is the bachelor's thesis project of Alyona Tymchak
+# with Vitalii Babenko (PhD) as supervisor and engineering lead.
+# Alyona authors the thesis-track material; Vitalii reviews every merge
+# into main and owns the runtime/package code.
+
+# Default: every change requires review from Vitalii
 * @vbabenko97
+
+# Core research package and pipeline — engineering-owned
+/src/abpm_hemodynamic_coupling/ @vbabenko97
+/run_pipeline.py                @vbabenko97
+/app.py                         @vbabenko97
+/pages/                         @vbabenko97
+
+# CI, packaging, and governance
+/.github/                       @vbabenko97
+/pyproject.toml                 @vbabenko97
+/SECURITY.md                    @vbabenko97
+/CONTRIBUTING.md                @vbabenko97
+/CODE_OF_CONDUCT.md             @vbabenko97
+
+# Thesis-track analysis area. Alyona Tymchak authors this material;
+# Vitalii still approves merges until Alyona is added as a collaborator.
+/analysis/thesis/               @vbabenko97
