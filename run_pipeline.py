@@ -13,12 +13,13 @@ Usage:
 """
 
 import warnings
+from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, wilcoxon
 
 from abpm_hemodynamic_coupling.config import Columns, Config
 from abpm_hemodynamic_coupling.data_processing import DataLoader
@@ -85,6 +86,13 @@ class SubjectAnalyzer:
             train_n=len(df_base),
             dbp_winner=dbp_result['winner'],
             dbp_ref_mae=dbp_result['ref_mae'],
+            dbp_cv_mae_brandon=dbp_result["cv_scores"]["Brandon"],
+            dbp_cv_mae_lasso=dbp_result["cv_scores"]["Lasso"],
+            dbp_cv_mae_rfe=dbp_result["cv_scores"]["RFE"],
+            dbp_cv_mae_ols_sbp=dbp_result["cv_scores"]["OLS(SBP)"],
+            dbp_cv_mae_ols_sbp_hr=dbp_result["cv_scores"]["OLS(SBP,HR)"],
+            dbp_brandon_features=dbp_result["brandon_features"],
+            dbp_brandon_feature_count=dbp_result["brandon_feature_count"],
             dbp_cognitive_task=dbp_result.get('cognitive_task'),
             dbp_physical_task=dbp_result.get('physical_task'),
             dbp_air_alert=dbp_result.get('air_alert')
@@ -106,14 +114,21 @@ class SubjectAnalyzer:
         
         winner = cv_perf.get_winner()
         ref_mae = cv_perf.get_best_score()
-        
+        cv_scores = cv_perf.to_dict()
+
         # Train final model
         model, idxs, scaler = self.trainer.train(X_raw, y, winner)
-        
+        _, brandon_idxs, _ = self.trainer.train(X_raw, y, "Brandon")
+        feature_names = feature_extractor.get_feature_names()
+        brandon_features = [feature_names[idx] for idx in brandon_idxs]
+
         # Evaluate on different conditions
         result = {
             'winner': winner,
-            'ref_mae': ref_mae
+            'ref_mae': ref_mae,
+            'cv_scores': cv_scores,
+            'brandon_features': ", ".join(brandon_features),
+            'brandon_feature_count': len(brandon_features),
         }
         
         for cond_name, label in [
@@ -173,6 +188,159 @@ class CohortAnalyzer:
             
             # Subgroup analysis
             self._write_subgroup_analysis(f, res_df)
+
+    def generate_brandon_summary(
+        self,
+        res_df: pd.DataFrame,
+        output_file: Path,
+        feature_counts_output: Path,
+    ) -> None:
+        """Generate article-oriented summary for Brandon-focused reporting."""
+        feature_counts = self._build_brandon_feature_counts(res_df)
+        feature_counts.to_csv(feature_counts_output, index=False)
+
+        with open(output_file, "w") as f:
+            f.write("BRANDON ARTICLE SUMMARY\n")
+            f.write("=" * 40 + "\n\n")
+
+            self._write_model_comparison(f, res_df)
+            self._write_winner_profile(f, res_df)
+            self._write_brandon_feature_counts(f, feature_counts)
+
+    def _write_model_comparison(self, f, res_df: pd.DataFrame) -> None:
+        """Compare Brandon against each competing model using paired CV-MAE."""
+        f.write("Paired CV-MAE comparison (lower is better)\n")
+        f.write("-" * 40 + "\n")
+
+        comparisons = [
+            ("DBP_CV_MAE_Brandon", "DBP_CV_MAE_OLS_SBP", "OLS(SBP)"),
+            ("DBP_CV_MAE_Brandon", "DBP_CV_MAE_OLS_SBP_HR", "OLS(SBP,HR)"),
+            ("DBP_CV_MAE_Brandon", "DBP_CV_MAE_Lasso", "Lasso"),
+            ("DBP_CV_MAE_Brandon", "DBP_CV_MAE_RFE", "RFE"),
+        ]
+
+        for brandon_col, other_col, label in comparisons:
+            valid = res_df[[brandon_col, other_col]].dropna()
+            if valid.empty:
+                continue
+
+            diff = valid[brandon_col] - valid[other_col]
+            try:
+                stat, p_value = wilcoxon(diff)
+            except ValueError:
+                stat, p_value = np.nan, 1.0
+
+            better = int((diff < 0).sum())
+            worse = int((diff > 0).sum())
+            ties = int((diff == 0).sum())
+
+            f.write(f"Brandon vs {label} (N={len(valid)})\n")
+            f.write(
+                f"  Brandon median CV-MAE: {valid[brandon_col].median():.2f} "
+                f"[{valid[brandon_col].quantile(0.25):.2f}, {valid[brandon_col].quantile(0.75):.2f}] mmHg\n"
+            )
+            f.write(
+                f"  {label} median CV-MAE: {valid[other_col].median():.2f} "
+                f"[{valid[other_col].quantile(0.25):.2f}, {valid[other_col].quantile(0.75):.2f}] mmHg\n"
+            )
+            f.write(
+                f"  Median paired difference (Brandon - {label}): {diff.median():.2f} mmHg\n"
+            )
+            f.write(
+                f"  Win/Loss/Tie by subject: {better}/{worse}/{ties}; "
+                f"Wilcoxon W={stat:.1f}, p={p_value:.4f}\n\n"
+            )
+
+    def _write_winner_profile(self, f, res_df: pd.DataFrame) -> None:
+        """Summarize how often Brandon wins model selection."""
+        valid = res_df[res_df["DBP_Winner"] != "NA"].copy()
+        if valid.empty:
+            return
+
+        counts = valid["DBP_Winner"].value_counts()
+        brandon_winners = valid[valid["DBP_Winner"] == "Brandon"]
+
+        f.write("Model winner profile\n")
+        f.write("-" * 40 + "\n")
+        for model_name, count in counts.items():
+            f.write(f"{model_name}: {count}/{len(valid)} ({100 * count / len(valid):.1f}%)\n")
+
+        f.write("\n")
+        if brandon_winners.empty:
+            f.write("Brandon winners: none\n\n")
+            return
+
+        f.write(f"Brandon winners: {len(brandon_winners)}/{len(valid)}\n")
+        f.write(
+            f"  Baseline ref MAE among Brandon winners: {brandon_winners['DBP_Ref_MAE'].median():.2f} "
+            f"[{brandon_winners['DBP_Ref_MAE'].quantile(0.25):.2f}, {brandon_winners['DBP_Ref_MAE'].quantile(0.75):.2f}] mmHg\n"
+        )
+        cognitive = brandon_winners[brandon_winners["DBP_Cognitive Task_N"] > 0]
+        if not cognitive.empty:
+            f.write(
+                f"  Cognitive DeltaBias among Brandon winners: {cognitive['DBP_Cognitive Task_DeltaBias'].median():.2f} "
+                f"[{cognitive['DBP_Cognitive Task_DeltaBias'].quantile(0.25):.2f}, {cognitive['DBP_Cognitive Task_DeltaBias'].quantile(0.75):.2f}] mmHg\n"
+            )
+            f.write(
+                f"  Cognitive Anomaly among Brandon winners: {cognitive['DBP_Cognitive Task_Anomaly'].median():.2f} "
+                f"[{cognitive['DBP_Cognitive Task_Anomaly'].quantile(0.25):.2f}, {cognitive['DBP_Cognitive Task_Anomaly'].quantile(0.75):.2f}] %\n"
+            )
+        f.write("\n")
+
+    def _build_brandon_feature_counts(self, res_df: pd.DataFrame) -> pd.DataFrame:
+        """Count how often Brandon selects each feature across subjects."""
+        overall_counter: Counter[str] = Counter()
+        winner_counter: Counter[str] = Counter()
+
+        for _, row in res_df.iterrows():
+            raw_features = row.get("DBP_Brandon_Features", "")
+            if not isinstance(raw_features, str) or not raw_features.strip():
+                continue
+
+            features = [feature.strip() for feature in raw_features.split(",") if feature.strip()]
+            overall_counter.update(features)
+            if row.get("DBP_Winner") == "Brandon":
+                winner_counter.update(features)
+
+        ordered_features = [
+            "SBP",
+            "HR",
+            "1/SBP",
+            "1/HR",
+            "SBP*HR",
+            "1/(SBP*HR)",
+        ]
+
+        rows = []
+        n_subjects = int((res_df["DBP_Brandon_Feature_Count"] > 0).sum())
+        n_winners = int((res_df["DBP_Winner"] == "Brandon").sum())
+        for feature in ordered_features:
+            overall = overall_counter.get(feature, 0)
+            winners = winner_counter.get(feature, 0)
+            rows.append(
+                {
+                    "feature": feature,
+                    "selected_n_all_subjects": overall,
+                    "selected_pct_all_subjects": 100 * overall / n_subjects if n_subjects else np.nan,
+                    "selected_n_brandon_winners": winners,
+                    "selected_pct_brandon_winners": 100 * winners / n_winners if n_winners else np.nan,
+                }
+            )
+
+        return pd.DataFrame(rows)
+
+    def _write_brandon_feature_counts(self, f, feature_counts: pd.DataFrame) -> None:
+        """Write feature-count summary in plain text."""
+        f.write("Brandon feature selection frequency\n")
+        f.write("-" * 40 + "\n")
+        for _, row in feature_counts.iterrows():
+            f.write(
+                f"{row['feature']}: all subjects {int(row['selected_n_all_subjects'])} "
+                f"({row['selected_pct_all_subjects']:.1f}%), "
+                f"Brandon winners {int(row['selected_n_brandon_winners'])} "
+                f"({row['selected_pct_brandon_winners']:.1f}%)\n"
+            )
+        f.write("\n")
     
     def _write_baseline_stats(self, f, res_df):
         """Write baseline performance statistics."""
@@ -351,6 +519,12 @@ def main():
         config.get_results_path(config.SUMMARY_OUTPUT)
     )
     print(f"Summary saved: {config.get_results_path(config.SUMMARY_OUTPUT)}")
+    cohort_analyzer.generate_brandon_summary(
+        res_df,
+        config.get_results_path(config.BRANDON_SUMMARY_OUTPUT),
+        config.get_results_path(config.BRANDON_FEATURE_COUNTS_OUTPUT),
+    )
+    print(f"Brandon summary saved: {config.get_results_path(config.BRANDON_SUMMARY_OUTPUT)}")
     
     # TODO: Add correlation analysis if aggregated data available
     # TODO: Add classifier training if classifier data available

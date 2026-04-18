@@ -36,6 +36,16 @@ class ModelPerformance:
         """Get the score of the best-performing model."""
         return min([self.brandon, self.lasso, self.rfe, self.ols_sbp, self.ols_sbp_hr])
 
+    def to_dict(self) -> Dict[str, float]:
+        """Return model scores in a stable export order."""
+        return {
+            "Brandon": self.brandon,
+            "Lasso": self.lasso,
+            "RFE": self.rfe,
+            "OLS(SBP)": self.ols_sbp,
+            "OLS(SBP,HR)": self.ols_sbp_hr,
+        }
+
 
 @dataclass
 class ConditionMetrics:
@@ -57,6 +67,13 @@ class SubjectResult:
     # DBP modeling
     dbp_winner: str
     dbp_ref_mae: float
+    dbp_cv_mae_brandon: float = np.nan
+    dbp_cv_mae_lasso: float = np.nan
+    dbp_cv_mae_rfe: float = np.nan
+    dbp_cv_mae_ols_sbp: float = np.nan
+    dbp_cv_mae_ols_sbp_hr: float = np.nan
+    dbp_brandon_features: str = ""
+    dbp_brandon_feature_count: int = 0
     dbp_cognitive_task: Optional[ConditionMetrics] = None
     dbp_physical_task: Optional[ConditionMetrics] = None
     dbp_air_alert: Optional[ConditionMetrics] = None
@@ -68,6 +85,13 @@ class SubjectResult:
             "Train_N": self.train_n,
             "DBP_Winner": self.dbp_winner,
             "DBP_Ref_MAE": self.dbp_ref_mae,
+            "DBP_CV_MAE_Brandon": self.dbp_cv_mae_brandon,
+            "DBP_CV_MAE_Lasso": self.dbp_cv_mae_lasso,
+            "DBP_CV_MAE_RFE": self.dbp_cv_mae_rfe,
+            "DBP_CV_MAE_OLS_SBP": self.dbp_cv_mae_ols_sbp,
+            "DBP_CV_MAE_OLS_SBP_HR": self.dbp_cv_mae_ols_sbp_hr,
+            "DBP_Brandon_Features": self.dbp_brandon_features,
+            "DBP_Brandon_Feature_Count": self.dbp_brandon_feature_count,
         }
         
         # Add DBP condition metrics

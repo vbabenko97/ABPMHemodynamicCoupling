@@ -59,6 +59,8 @@ class Config:
     # Output file names
     SUBJECT_METRICS_OUTPUT: str = "per_subject_metrics.csv"
     SUMMARY_OUTPUT: str = "results_summary.txt"
+    BRANDON_SUMMARY_OUTPUT: str = "brandon_article_summary.txt"
+    BRANDON_FEATURE_COUNTS_OUTPUT: str = "brandon_feature_counts.csv"
     CROSS_CONDITION_OUTPUT: str = "cross_condition_analysis.txt"
     PAIRWISE_OUTPUT: str = "pairwise_tests.txt"
     DEMOGRAPHICS_FIGURE: str = "demographics.png"
