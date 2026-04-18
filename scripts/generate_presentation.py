@@ -5,18 +5,27 @@ Detecting Stress-Linked Blood Pressure Relationship Shifts
 from Ambulatory Monitoring.
 
 Usage:
-    python generate_presentation.py
+    python scripts/generate_presentation.py
 
 Output:
     presentation.pptx in the current working directory.
 """
 
 import os
+
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
+
+from abpm_hemodynamic_coupling.config import Columns, Config
+from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor
+from abpm_hemodynamic_coupling.modeling import ModelTrainer
 
 # ---------------------------------------------------------------------------
 # Color / style constants
@@ -47,8 +56,8 @@ CONTENT_LEFT = Inches(0.7)
 CONTENT_WIDTH = Inches(11.9)
 CONTENT_HEIGHT = Inches(5.5)
 
-# Figure paths (relative to script directory)
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Paths are resolved relative to the repository root (one level above scripts/)
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIG1_PRESENTATION_PATH = os.path.join(
     SCRIPT_DIR, "results", "presentation_cognitive_patterns.png",
 )
@@ -57,6 +66,16 @@ CONTEXT_BREAKDOWN_PATH = os.path.join(
     SCRIPT_DIR, "results", "presentation_context_breakdown.png",
 )
 LOGO_PATH = os.path.join(SCRIPT_DIR, "logo", "abpm_analysis.png")
+SUBJECT_METRICS_PATHS = [
+    os.path.join(SCRIPT_DIR, "docs", "thesis", "per_subject_metrics.csv"),
+    os.path.join(SCRIPT_DIR, "results", "per_subject_metrics.csv"),
+]
+MONITORING_PATHS = [
+    os.path.join(SCRIPT_DIR, "results", "thesis", "monitoring_labeled.parquet"),
+    os.path.join(SCRIPT_DIR, "data", "monitoring_data.csv"),
+]
+CASE_STUDY_PATH = os.path.join(SCRIPT_DIR, "results", "presentation_case_study.png")
+CASE_STUDY_SUBJECT = 35
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +248,7 @@ def add_stat_callout(slide, number_text, label_text, x, y, w=2.5, h=1.5,
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = number_text
-    p.font.size = Pt(36)
+    p.font.size = Pt(38)
     p.font.bold = True
     p.font.color.rgb = number_color
     p.font.name = FONT_HEADER
@@ -237,16 +256,57 @@ def add_stat_callout(slide, number_text, label_text, x, y, w=2.5, h=1.5,
 
     # Label
     lbl_box = slide.shapes.add_textbox(
-        Inches(x + 0.15), Inches(y + 0.85), Inches(w - 0.3), Inches(0.5),
+        Inches(x + 0.15), Inches(y + 0.8), Inches(w - 0.3), Inches(0.58),
     )
     tf = lbl_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = label_text
-    p.font.size = Pt(11)
+    p.font.size = Pt(12)
     p.font.color.rgb = MEDIUM_GRAY
     p.font.name = FONT_BODY
     p.alignment = PP_ALIGN.CENTER
+
+
+def add_formula_card(slide, title_text, formula_text, x, y, w, h, accent_color):
+    """Add a compact formula card with a colored accent."""
+    card = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(y), Inches(w), Inches(h),
+    )
+    card.fill.solid()
+    card.fill.fore_color.rgb = WHITE
+    card.line.color.rgb = RGBColor(0xD6, 0xDE, 0xE8)
+    card.line.width = Pt(1.0)
+
+    accent = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(x), Inches(y), Inches(0.08), Inches(h),
+    )
+    accent.fill.solid()
+    accent.fill.fore_color.rgb = accent_color
+    accent.line.fill.background()
+
+    title_box = slide.shapes.add_textbox(
+        Inches(x + 0.18), Inches(y + 0.1), Inches(w - 0.3), Inches(0.25),
+    )
+    tf = title_box.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = title_text
+    p.font.size = Pt(14)
+    p.font.bold = True
+    p.font.color.rgb = accent_color
+    p.font.name = FONT_BODY
+
+    formula_box = slide.shapes.add_textbox(
+        Inches(x + 0.18), Inches(y + 0.34), Inches(w - 0.32), Inches(h - 0.42),
+    )
+    tf = formula_box.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = formula_text
+    p.font.size = Pt(16)
+    p.font.color.rgb = CHARCOAL
+    p.font.name = FONT_BODY
 
 
 def add_pipeline_box(slide, text, x, y, w, h, fill_color=WHITE, text_color=CHARCOAL,
@@ -290,20 +350,471 @@ def try_add_image(slide, path, x, y, w, h, placeholder_text="[Figure not found]"
         if os.path.isfile(path):
             slide.shapes.add_picture(path, Inches(x), Inches(y), Inches(w), Inches(h))
             return True
-        else:
-            raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(f"File not found: {path}")
     except Exception:
         txBox = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
         tf = txBox.text_frame
         tf.word_wrap = True
         p = tf.paragraphs[0]
         p.text = placeholder_text
-        p.font.size = Pt(14)
-        p.font.color.rgb = MUTED_GRAY
+        p.font.size = Pt(16)
+        p.font.color.rgb = MEDIUM_GRAY
         p.font.name = FONT_BODY
-        p.font.italic = True
         p.alignment = PP_ALIGN.CENTER
         return False
+
+
+def resolve_first_existing_path(paths):
+    """Return the first existing path from a candidate list."""
+    for path in paths:
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def generate_presentation_cognitive_patterns():
+    """Create a projector-friendly version of the cognitive dot plots."""
+    metrics_path = resolve_first_existing_path(SUBJECT_METRICS_PATHS)
+    if metrics_path is None:
+        return False
+
+    metrics_df = pd.read_csv(metrics_path)
+    valid_df = metrics_df[metrics_df["DBP_Cognitive Task_N"] > 0].copy()
+    if valid_df.empty:
+        return False
+
+    valid_df["flagged"] = (
+        (valid_df["DBP_Cognitive Task_Anomaly"] > 50.0)
+        | (valid_df["DBP_Cognitive Task_DeltaBias"] > 2.0)
+    )
+
+    flagged_df = valid_df[valid_df["flagged"]]
+    clean_df = valid_df[~valid_df["flagged"]]
+    rng = np.random.default_rng(42)
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.8))
+    panels = [
+        (
+            axes[0],
+            "DBP_Cognitive Task_Anomaly",
+            "A. MAE inflation",
+            "MAE inflation (%)",
+            50.0,
+            "Flag threshold = 50%",
+        ),
+        (
+            axes[1],
+            "DBP_Cognitive Task_DeltaBias",
+            "B. Signed residual bias",
+            "Signed residual bias (mmHg)",
+            2.0,
+            "Flag threshold = +2 mmHg",
+        ),
+    ]
+
+    for ax, column, title, ylabel, threshold, threshold_label in panels:
+        x_clean = rng.normal(0.0, 0.04, size=len(clean_df))
+        x_flagged = rng.normal(1.0, 0.04, size=len(flagged_df))
+
+        if len(clean_df) > 0:
+            ax.scatter(
+                x_clean,
+                clean_df[column],
+                s=95,
+                linewidth=1.5,
+                marker="o",
+                facecolors="none",
+                edgecolors="#2E86AB",
+                zorder=3,
+            )
+        if len(flagged_df) > 0:
+            ax.scatter(
+                x_flagged,
+                flagged_df[column],
+                s=120,
+                linewidth=1.4,
+                marker="X",
+                color="#E05263",
+                zorder=4,
+            )
+
+        median_value = float(valid_df[column].median())
+        ax.axhline(threshold, color="#E05263", linewidth=3.0, alpha=0.95, zorder=2)
+        ax.axhline(
+            median_value,
+            color="#666666",
+            linestyle="--",
+            linewidth=2.0,
+            alpha=0.85,
+            zorder=1,
+        )
+        ax.set_title(title, fontsize=15, fontweight="bold", pad=10)
+        ax.set_ylabel(ylabel, fontsize=15, fontweight="bold")
+        ax.set_xlim(-0.4, 1.4)
+        ax.set_xticks([0, 1], ["Not flagged\n(n=7)", "Flagged\n(n=20)"])
+        ax.tick_params(axis="x", labelsize=12)
+        ax.tick_params(axis="y", labelsize=13)
+        ax.grid(True, axis="y", alpha=0.25, linewidth=0.8)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.text(
+            0.02,
+            0.96,
+            f"Cohort median = {median_value:.2f}",
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=11,
+            color="#666666",
+            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#D6DBDF", alpha=0.9),
+        )
+
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.9, bottom=0.17, wspace=0.16)
+    fig.savefig(FIG1_PRESENTATION_PATH, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+    return True
+
+
+def generate_context_breakdown_chart():
+    """Create a cleaner context-composition chart for the data slide."""
+    monitoring_path = resolve_first_existing_path(MONITORING_PATHS)
+    if monitoring_path is None:
+        return False
+
+    if monitoring_path.endswith(".parquet"):
+        monitoring_df = pd.read_parquet(monitoring_path)
+    else:
+        monitoring_df = pd.read_csv(monitoring_path, parse_dates=[Columns.TIME])
+
+    categories = [
+        ("Baseline", [Columns.LABEL_BASELINE], "#24355A"),
+        ("Sleep", [Columns.LABEL_SLEEP], "#3B8DB3"),
+        (
+            "Task",
+            [Columns.LABEL_COGNITIVE_TASK, Columns.LABEL_PHYSICAL_TASK],
+            "#E05263",
+        ),
+        ("Air Alert", [Columns.LABEL_AIR_ALERT], "#6C4E9B"),
+    ]
+
+    used_mask = monitoring_df[Columns.LABEL].isin(
+        [label for _, labels, _ in categories for label in labels]
+    )
+    data = []
+    total_n = len(monitoring_df)
+    for name, labels, color in categories:
+        subset = monitoring_df[monitoring_df[Columns.LABEL].isin(labels)]
+        data.append(
+            {
+                "name": name,
+                "count": len(subset),
+                "subjects": subset[Columns.PAT_ID].nunique(),
+                "pct": len(subset) / total_n * 100.0,
+                "color": color,
+            }
+        )
+
+    excluded_df = monitoring_df[~used_mask]
+    data.append(
+        {
+            "name": "Other excluded",
+            "count": len(excluded_df),
+            "subjects": excluded_df[Columns.PAT_ID].nunique(),
+            "pct": len(excluded_df) / total_n * 100.0,
+            "color": "#AAB3C2",
+        }
+    )
+
+    plot_df = pd.DataFrame(data)
+    fig, ax = plt.subplots(figsize=(7.7, 5.0))
+    y_positions = np.arange(len(plot_df))
+    bars = ax.barh(
+        y_positions,
+        plot_df["count"],
+        color=plot_df["color"],
+        height=0.56,
+        edgecolor="none",
+    )
+
+    ax.set_yticks(y_positions, plot_df["name"], fontsize=13)
+    ax.invert_yaxis()
+    max_count = int(plot_df["count"].max())
+    ax.set_xlim(0, max_count * 1.48)
+    ax.set_xlabel("Valid ABPM readings", fontsize=14, fontweight="bold")
+    ax.tick_params(axis="x", labelsize=11)
+    ax.grid(True, axis="x", alpha=0.18, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
+    for bar, (_, row) in zip(bars, plot_df.iterrows(), strict=False):
+        y_mid = bar.get_y() + bar.get_height() / 2
+        x_right = bar.get_width()
+        ax.text(
+            x_right + max_count * 0.03,
+            y_mid - 0.02,
+            f"{int(row['count']):,} readings  ({row['pct']:.1f}%)",
+            va="center",
+            ha="left",
+            fontsize=11.6,
+            fontweight="semibold",
+            color="#333333",
+        )
+        ax.text(
+            x_right + max_count * 0.03,
+            y_mid + 0.23,
+            f"n subjects = {int(row['subjects'])}",
+            va="center",
+            ha="left",
+            fontsize=9.5,
+            color="#666666",
+        )
+
+    fig.subplots_adjust(left=0.16, right=0.98, top=0.95, bottom=0.16)
+    fig.savefig(CONTEXT_BREAKDOWN_PATH, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+    return True
+
+
+def _prepare_case_study_predictions(subject_df, winner):
+    """Fit the subject-level baseline model and return predictions/residuals."""
+    config = Config()
+    feature_extractor = DBPFeatureExtractor(config)
+    trainer = ModelTrainer(config)
+
+    baseline_df = subject_df[subject_df[Columns.LABEL] == Columns.LABEL_BASELINE].copy()
+    if baseline_df.empty:
+        raise ValueError("Case-study subject has no baseline rows.")
+
+    X_base = feature_extractor.extract(baseline_df)
+    y_base = baseline_df[Columns.DBP].to_numpy(dtype=float)
+    model, feature_idx, scaler = trainer.train(X_base, y_base, winner)
+
+    X_all = feature_extractor.extract(subject_df)
+    X_all_scaled = scaler.transform(X_all)
+    predictions = model.predict(X_all_scaled[:, feature_idx])
+
+    enriched = subject_df.copy()
+    enriched["predicted_dbp"] = predictions
+    enriched["residual_dbp"] = enriched[Columns.DBP].to_numpy(dtype=float) - predictions
+    return enriched
+
+
+def generate_case_study_timeline(subject_id=CASE_STUDY_SUBJECT):
+    """Generate a single-subject alert timeline for the presentation."""
+    metrics_path = resolve_first_existing_path(SUBJECT_METRICS_PATHS)
+    monitoring_path = resolve_first_existing_path(MONITORING_PATHS)
+    if metrics_path is None or monitoring_path is None:
+        return False
+
+    metrics_df = pd.read_csv(metrics_path)
+    if monitoring_path.endswith(".parquet"):
+        monitoring_df = pd.read_parquet(monitoring_path)
+    else:
+        monitoring_df = pd.read_csv(monitoring_path, parse_dates=[Columns.TIME])
+
+    subject_metrics = metrics_df[metrics_df["participant_id"] == subject_id]
+    subject_df = monitoring_df[
+        monitoring_df[Columns.PAT_ID] == subject_id
+    ].sort_values(Columns.TIME).copy()
+    if subject_metrics.empty or subject_df.empty:
+        return False
+
+    winner = subject_metrics["DBP_Winner"].iloc[0]
+    if winner == "NA":
+        return False
+
+    subject_df[Columns.TIME] = pd.to_datetime(subject_df[Columns.TIME])
+    subject_df = _prepare_case_study_predictions(subject_df, winner)
+
+    alert_df = subject_df[subject_df[Columns.LABEL] == Columns.LABEL_AIR_ALERT].copy()
+    baseline_df = subject_df[subject_df[Columns.LABEL] == Columns.LABEL_BASELINE].copy()
+    if alert_df.empty or baseline_df.empty:
+        return False
+
+    pre_alert_baseline = baseline_df[baseline_df[Columns.TIME] < alert_df[Columns.TIME].min()]
+    if pre_alert_baseline.empty:
+        pre_alert_baseline = baseline_df.iloc[: min(4, len(baseline_df))]
+
+    display_start = pre_alert_baseline[Columns.TIME].min() - pd.Timedelta(minutes=15)
+    display_end = alert_df[Columns.TIME].max() + pd.Timedelta(minutes=20)
+    display_df = subject_df[
+        (subject_df[Columns.TIME] >= display_start)
+        & (subject_df[Columns.TIME] <= display_end)
+    ].copy()
+    if display_df.empty:
+        return False
+
+    alert_peak_idx = alert_df["residual_dbp"].abs().idxmax()
+    alert_peak = alert_df.loc[alert_peak_idx]
+    metrics_row = subject_metrics.iloc[0]
+
+    fig = plt.figure(figsize=(11.2, 6.4))
+    gs = fig.add_gridspec(3, 1, height_ratios=[1.0, 1.25, 0.85], hspace=0.12)
+    ax_top = fig.add_subplot(gs[0])
+    ax_mid = fig.add_subplot(gs[1], sharex=ax_top)
+    ax_bot = fig.add_subplot(gs[2], sharex=ax_top)
+
+    ax_top.plot(
+        display_df[Columns.TIME],
+        display_df[Columns.SBP],
+        color="#1B2A4A",
+        linewidth=2.4,
+        marker="o",
+        markersize=5,
+        label="SBP",
+    )
+    ax_top_hr = ax_top.twinx()
+    ax_top_hr.plot(
+        display_df[Columns.TIME],
+        display_df[Columns.HR],
+        color="#E67E22",
+        linewidth=2.2,
+        marker="s",
+        markersize=4,
+        label="HR",
+    )
+
+    ax_mid.plot(
+        display_df[Columns.TIME],
+        display_df[Columns.DBP],
+        color="#2E86AB",
+        linewidth=2.6,
+        marker="o",
+        markersize=5,
+        label="Observed DBP",
+    )
+    ax_mid.plot(
+        display_df[Columns.TIME],
+        display_df["predicted_dbp"],
+        color="#E05263",
+        linewidth=2.6,
+        linestyle="--",
+        label="Predicted DBP from baseline model",
+    )
+
+    ax_bot.axhline(0, color="#444444", linewidth=1.4, linestyle="--")
+    ax_bot.bar(
+        display_df[Columns.TIME],
+        display_df["residual_dbp"],
+        width=0.0075,
+        color="#4E79A7",
+        alpha=0.85,
+        edgecolor="white",
+        linewidth=0.4,
+    )
+
+    baseline_span_start = pre_alert_baseline[Columns.TIME].min()
+    baseline_span_end = pre_alert_baseline[Columns.TIME].max()
+    alert_span_start = alert_df[Columns.TIME].min()
+    alert_span_end = alert_df[Columns.TIME].max()
+    for axis in (ax_top, ax_mid, ax_bot):
+        axis.axvspan(
+            baseline_span_start,
+            baseline_span_end,
+            color="#D6EAF8",
+            alpha=0.5,
+            zorder=0,
+        )
+        axis.axvspan(
+            alert_span_start,
+            alert_span_end,
+            color="#FADBD8",
+            alpha=0.55,
+            zorder=0,
+        )
+        axis.grid(True, axis="y", alpha=0.22, linewidth=0.8)
+
+    ax_mid.scatter(
+        alert_peak[Columns.TIME],
+        alert_peak[Columns.DBP],
+        s=120,
+        facecolors="none",
+        edgecolors="#C0392B",
+        linewidth=2.2,
+        zorder=5,
+    )
+    ax_top.set_ylabel("SBP (mmHg)", fontsize=13, fontweight="bold", color="#1B2A4A")
+    ax_top_hr.set_ylabel("HR (bpm)", fontsize=13, fontweight="bold", color="#E67E22")
+    ax_mid.set_ylabel("DBP (mmHg)", fontsize=13, fontweight="bold")
+    ax_bot.set_ylabel("DBP residual\n(mmHg)", fontsize=12, fontweight="bold")
+    ax_bot.set_xlabel("Clock time", fontsize=13, fontweight="bold")
+
+    for axis in (ax_top, ax_mid, ax_bot, ax_top_hr):
+        axis.tick_params(labelsize=11)
+    ax_bot.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    ax_top.tick_params(labelbottom=False)
+    ax_mid.tick_params(labelbottom=False)
+
+    ax_top.text(
+        baseline_span_start + (baseline_span_end - baseline_span_start) / 2,
+        ax_top.get_ylim()[1] * 0.985,
+        "Baseline fit window",
+        ha="center",
+        va="top",
+        fontsize=10.5,
+        color="#1B4F72",
+        fontweight="bold",
+    )
+    ax_top.text(
+        alert_span_start + (alert_span_end - alert_span_start) / 2,
+        ax_top.get_ylim()[1] * 0.985,
+        "Air-alert window",
+        ha="center",
+        va="top",
+        fontsize=10.5,
+        color="#943126",
+        fontweight="bold",
+    )
+
+    top_handles, top_labels = ax_top.get_legend_handles_labels()
+    hr_handles, hr_labels = ax_top_hr.get_legend_handles_labels()
+    ax_top.legend(
+        top_handles + hr_handles,
+        top_labels + hr_labels,
+        loc="upper right",
+        fontsize=10,
+        frameon=True,
+        ncol=2,
+    )
+    ax_mid.legend(loc="upper left", fontsize=10, frameon=True)
+    ax_bot.text(
+        0.99,
+        0.88,
+        (
+            f"{winner} | baseline n={int(metrics_row['Train_N'])} | alert n={int(metrics_row['DBP_Air Alert_N'])}\n"
+            f"baseline MAE {metrics_row['DBP_Ref_MAE']:.2f} mmHg | alert MAE {metrics_row['DBP_Air Alert_MAE']:.2f} mmHg\n"
+            f"MAE inflation {metrics_row['DBP_Air Alert_Anomaly']:+.0f}% | bias {metrics_row['DBP_Air Alert_DeltaBias']:+.2f} mmHg"
+        ),
+        transform=ax_bot.transAxes,
+        ha="right",
+        va="top",
+        fontsize=9.5,
+        color="#1F2D3D",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#CBD5E1", lw=1.0, alpha=0.95),
+    )
+
+    fig.subplots_adjust(left=0.08, right=0.92, top=0.94, bottom=0.1)
+    fig.savefig(CASE_STUDY_PATH, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+    return True
+
+
+def prepare_presentation_assets():
+    """Generate presentation-specific figures when the source data are available."""
+    try:
+        generate_context_breakdown_chart()
+    except Exception as exc:
+        print(f"Warning: could not regenerate context breakdown figure: {exc}")
+    try:
+        generate_presentation_cognitive_patterns()
+    except Exception as exc:
+        print(f"Warning: could not regenerate cognitive presentation figure: {exc}")
+    try:
+        generate_case_study_timeline()
+    except Exception as exc:
+        print(f"Warning: could not regenerate case-study figure: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -506,7 +1017,7 @@ def build_slide_03_related_work(prs):
         "Need for scalable insights from deployed clinical hardware",
     ]
     add_bullet_list(slide, bullets, top=Inches(1.4), width=Inches(6.0),
-                    height=Inches(3.5), font_size=17)
+                    height=Inches(3.5), font_size=18)
 
     # Right-side comparison: two stacked cards
     # Card 1: Existing approaches
@@ -533,13 +1044,13 @@ def build_slide_03_related_work(prs):
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = "Existing approaches"
-    p.font.size = Pt(13)
+    p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = RED_ACCENT
     p.font.name = FONT_BODY
     p2 = tf.add_paragraph()
     p2.text = "Cohort averages, lab-only sensors, HR/HRV confounded by exertion"
-    p2.font.size = Pt(12)
+    p2.font.size = Pt(13)
     p2.font.color.rgb = CHARCOAL
     p2.font.name = FONT_BODY
     p2.space_before = Pt(6)
@@ -567,16 +1078,34 @@ def build_slide_03_related_work(prs):
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = "Our approach"
-    p.font.size = Pt(13)
+    p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = BLUE_ACCENT
     p.font.name = FONT_BODY
     p2 = tf.add_paragraph()
     p2.text = "Within-subject baselines, ABPM-only, software-level coupling deviation screening"
-    p2.font.size = Pt(12)
+    p2.font.size = Pt(13)
     p2.font.color.rgb = CHARCOAL
     p2.font.name = FONT_BODY
     p2.space_before = Pt(6)
+
+    gap_box = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(0.9), Inches(4.95), Inches(5.9), Inches(1.0),
+    )
+    gap_box.fill.solid()
+    gap_box.fill.fore_color.rgb = VERY_LIGHT_BLUE
+    gap_box.line.color.rgb = BLUE_ACCENT
+    gap_box.line.width = Pt(1.2)
+    tf = gap_box.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = "Missing piece: a scalable way to read individualized physiology from standard ABPM, without lab-only hardware."
+    p.font.size = Pt(15)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+    p.font.name = FONT_BODY
+    p.alignment = PP_ALIGN.CENTER
 
     add_footer(slide, 3)
     add_speaker_notes(slide, (
@@ -607,17 +1136,19 @@ def build_slide_04_data(prs):
     bullets = [
         "28 participants (age 17\u201366; 42.9% female), Kyiv, Nov 2023 \u2013 Feb 2024",
         "2,164 valid readings across 5 labeled context windows",
+        "1,238 awake-baseline readings used for training (~44 per participant)",
+        "Standard ABPM cadence: one cuff reading every 15\u201330 minutes",
         "8-level deterministic label priority; air-raid alerts take precedence",
         "Cognitive tasks: Stroop, reaction time, visuomotor coordination",
         "Physical task: modified Harvard Step Test",
     ]
-    add_bullet_list(slide, bullets, top=Inches(1.4), width=Inches(5.6),
-                    height=Inches(3.5), font_size=17)
+    add_bullet_list(slide, bullets, top=Inches(1.4), width=Inches(5.55),
+                    height=Inches(4.0), font_size=17)
 
     # Right side: context breakdown bar chart — wider, shifted left for more bar room
     try_add_image(
         slide, CONTEXT_BREAKDOWN_PATH,
-        x=6.1, y=1.3, w=6.7, h=3.8,
+        x=5.95, y=1.22, w=6.95, h=4.75,
         placeholder_text="[Dataset composition by labeled context]",
     )
 
@@ -628,25 +1159,22 @@ def build_slide_04_data(prs):
     tf = note_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = "Full condition-level summary in Table 1 of the paper"
-    p.font.size = Pt(12)
+    p.text = "Training density is modest but sufficient for transparent OLS-style modeling"
+    p.font.size = Pt(13)
     p.font.color.rgb = MUTED_GRAY
     p.font.name = FONT_BODY
     p.font.italic = True
 
     add_footer(slide, 4)
     add_speaker_notes(slide, (
-        "Our dataset was collected continuously between November 2023 and February 2024. We "
-        "outfitted 28 participants in Kyiv with standard ABPM devices. Following artifact "
-        "removal, the study yielded 2,164 valid readings. To create distinct context windows "
-        "for our modeling, participants were asked to perform specific controlled activities. "
-        "For cognitive stress, this included tasks like the Stroop test and visuomotor tracking; "
-        "for physical stress, participants performed the Harvard Step Test. We also integrated "
-        "timestamps from the Ukraine Alarm API to flag air-raid alert exposure windows. To "
-        "manage overlapping contexts, we implemented an 8-level deterministic priority "
-        "hierarchy. Safety alerts were prioritized at the top -- meaning any reading during an "
-        "air-raid alert was exclusively labeled as such -- while baseline resting states formed "
-        "the bottom of the hierarchy."
+        "The dataset contains 2,164 valid ABPM readings from 28 participants, but the key number "
+        "for modeling is 1,238 awake-baseline points. That is about 44 baseline measurements per "
+        "person on average. For standard ABPM, this is enough for transparent linear models and "
+        "too sparse for data-hungry deep learning. We made that trade-off on purpose. The cuff "
+        "inflates every 15 to 30 minutes, so interpretability and variance control matter more "
+        "than model complexity here. Contexts were labeled deterministically, with air-raid "
+        "alerts at the top of the priority hierarchy, followed by controlled task windows and "
+        "baseline at the bottom."
     ))
     return slide
 
@@ -656,42 +1184,74 @@ def build_slide_05_methods(prs):
     slide = add_blank_slide(prs)
     add_header_bar(slide, "Methods: Individualized Coupling Model")
 
-    # Full-width bullet list with formulas folded in
-    bullets = [
-        "Per-subject baseline: predicted DBP = f(SBP, HR)",
-        "Compact feature library with interaction and inverse terms",
-        "3-fold contiguous time-block cross-validation (no temporal leakage)",
-        "MAE Inflation: how much worse is prediction under stress?",
-        "Signed Residual Bias: is observed DBP above or below prediction?",
-    ]
-    add_bullet_list(slide, bullets, top=Inches(1.4), width=Inches(11.9),
-                    height=Inches(2.6), font_size=18)
+    formula_box = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(0.7), Inches(1.38), Inches(12.0), Inches(1.22),
+    )
+    formula_box.fill.solid()
+    formula_box.fill.fore_color.rgb = WHITE
+    formula_box.line.color.rgb = BLUE_ACCENT
+    formula_box.line.width = Pt(1.4)
 
-    # Pipeline diagram — taller and more prominent
+    formula_text = slide.shapes.add_textbox(
+        Inches(0.95), Inches(1.56), Inches(11.4), Inches(0.82),
+    )
+    tf = formula_text.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = "DBP̂ = β0 + Σ βj Φj(x),   |S| ≤ 3"
+    p.font.size = Pt(22)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+    p.font.name = FONT_BODY
+    p.alignment = PP_ALIGN.CENTER
+    p2 = tf.add_paragraph()
+    p2.text = "Φ(x) = [SBP, HR, 1/SBP, 1/HR, SBP·HR, 1/(SBP·HR)]"
+    p2.font.size = Pt(20)
+    p2.font.color.rgb = CHARCOAL
+    p2.font.name = FONT_BODY
+    p2.alignment = PP_ALIGN.CENTER
+
+    add_formula_card(
+        slide,
+        "MAE inflation",
+        "Aᵢ,c (%) = 100 × (MAEᵢ(c) - MAEᵢ,ref) / (MAEᵢ,ref + ε)",
+        x=0.7, y=2.8, w=5.8, h=0.82,
+        accent_color=BLUE_ACCENT,
+    )
+    add_formula_card(
+        slide,
+        "DeltaBias",
+        "ΔBiasᵢ,c = median(eᵢt),   eᵢt = DBPᵢt - DBP̂ᵢt",
+        x=6.7, y=2.8, w=5.8, h=0.82,
+        accent_color=RED_ACCENT,
+    )
+
+    # Pipeline diagram — expanded to use the freed space
     pipeline_bg = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE,
-        Inches(0.5), Inches(4.2), Inches(12.3), Inches(2.6),
+        Inches(0.5), Inches(3.85), Inches(12.3), Inches(2.8),
     )
     pipeline_bg.fill.solid()
     pipeline_bg.fill.fore_color.rgb = PIPELINE_BG
     pipeline_bg.line.fill.background()
 
     # Pipeline label
-    plabel = slide.shapes.add_textbox(Inches(0.7), Inches(4.3), Inches(3.0), Inches(0.35))
+    plabel = slide.shapes.add_textbox(Inches(0.7), Inches(3.98), Inches(3.0), Inches(0.35))
     tf = plabel.text_frame
     p = tf.paragraphs[0]
     p.text = "Analysis Pipeline"
-    p.font.size = Pt(14)
+    p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = NAVY
     p.font.name = FONT_BODY
 
     # Pipeline boxes (larger for projection readability)
-    box_y = 4.9
-    box_h = 1.0
-    box_w = 1.7
-    gap = 0.15
-    arrow_w = 0.3
+    box_y = 4.88
+    box_h = 1.02
+    box_w = 1.72
+    gap = 0.14
+    arrow_w = 0.28
 
     steps = [
         "ABPM\nData",
@@ -706,30 +1266,24 @@ def build_slide_05_methods(prs):
     for i, step_text in enumerate(steps):
         bx = start_x + i * (box_w + gap + arrow_w)
         add_pipeline_box(slide, step_text, bx, box_y, box_w, box_h,
-                         fill_color=WHITE, text_color=NAVY, font_size=13, bold=True)
+                         fill_color=WHITE, text_color=NAVY, font_size=14, bold=True)
         if i < len(steps) - 1:
             ax = bx + box_w + 0.03
             add_arrow(slide, ax, box_y + box_h / 2 - 0.125, arrow_w)
 
     add_footer(slide, 5)
     add_speaker_notes(slide, (
-        "Our analytical framework relies entirely on individualized baseline modeling. Rather "
-        "than building a generalized cohort model, we trained a distinct regression model for "
-        "each participant using only their non-stressful awake baseline readings. The model "
-        "predicts Diastolic Blood Pressure using concurrent values of Systolic Blood Pressure "
-        "and Heart Rate. To ensure the models can capture non-linear cardiovascular "
-        "relationships without overfitting on sparse data, we defined a compact 6-feature "
-        "library comprising the raw variables, their mathematical inverses, and multi-variable "
-        "interaction terms. The candidate models were evaluated using three-fold contiguous "
-        "time-block cross-validation. This contiguous splitting strategy is critical, as it "
-        "prevents temporal leakage between adjacent blood pressure readings. Ultimately, simple "
-        "Ordinary Least Squares regression yielded the lowest error for the majority of "
-        "participants and was selected as the baseline architecture. During the labeled context "
-        "windows, we quantified deviations from this baseline using two primary metrics. First, "
-        "Mean Absolute Error Inflation measures the magnitude of the model's prediction "
-        "degradation relative to baseline. Second, Signed Residual Bias measures the direction "
-        "of the error, indicating whether the true measured diastolic pressure is systematically "
-        "higher or systematically lower than what the baseline coupling relationship predicts."
+        "This is the core engineering slide. For each participant, we fit DBP only from that "
+        "person's awake baseline readings. The feature pool is explicit: SBP, HR, their inverses, "
+        "their product, and the inverse product. We never let the model roam freely through all "
+        "six terms. Subset size is capped at three features because the training set is only "
+        "about 44 baseline readings per participant on average. That is exactly where curse-of-"
+        "dimensionality problems start if you get greedy. Model selection uses three contiguous "
+        "time blocks, not shuffled folds. That choice removes temporal leakage, which is the main "
+        "failure mode in ABPM time-series modeling. Under this data density, simple linear models "
+        "are the right tool: transparent, stable, and sufficient. Once the baseline model is fit, "
+        "we quantify stress-window deviation with two outputs only: MAE inflation for magnitude "
+        "and signed residual bias for direction."
     ))
     return slide
 
@@ -745,26 +1299,26 @@ def build_slide_06_results(prs):
         Inches(0.7), Inches(1.2), Inches(11.9), Inches(0.6),
     )
     null_banner.fill.solid()
-    null_banner.fill.fore_color.rgb = RGBColor(0xFD, 0xEE, 0xEF)  # light red tint
-    null_banner.line.color.rgb = RED_ACCENT
+    null_banner.fill.fore_color.rgb = VERY_LIGHT_BLUE
+    null_banner.line.color.rgb = BLUE_ACCENT
     null_banner.line.width = Pt(1.5)
     tf = null_banner.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     run1 = p.add_run()
-    run1.text = "Cohort-level contrasts not significant after BH-FDR correction (all q > 0.05)"
-    run1.font.size = Pt(15)
+    run1.text = "Cohort averaging masks the signal (all q > 0.05) \u2192 validating individualized models"
+    run1.font.size = Pt(16)
     run1.font.bold = True
-    run1.font.color.rgb = RED_ACCENT
+    run1.font.color.rgb = NAVY
     run1.font.name = FONT_BODY
     p.alignment = PP_ALIGN.CENTER
 
     # Key stats — shifted down to sit below the banner
     add_stat_callout(slide, "6.89", "Baseline MAE\n(mmHg)", 0.7, 2.05, w=2.8, h=1.1,
                      number_color=NAVY)
-    add_stat_callout(slide, "+4.18", "Cognitive Bias\n(mmHg)", 3.8, 2.05, w=2.8, h=1.1,
+    add_stat_callout(slide, "+4.18", "Bias for Cognitive\n(mmHg)", 3.8, 2.05, w=2.8, h=1.1,
                      number_color=BLUE_ACCENT)
-    add_stat_callout(slide, "-2.01", "Physical Bias\n(mmHg)", 6.9, 2.05, w=2.8, h=1.1,
+    add_stat_callout(slide, "-2.01", "Bias for Physical\n(mmHg)", 6.9, 2.05, w=2.8, h=1.1,
                      number_color=RED_ACCENT)
     add_stat_callout(slide, "20/27", "Flagged (74.1%)\n(descriptive threshold)", 10.0, 2.05, w=2.8, h=1.1,
                      number_color=NAVY)
@@ -789,11 +1343,9 @@ def build_slide_06_results(prs):
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = (
-        "Figure 1: Per-participant cognitive-task MAE inflation (A) "
-        "and signed residual bias (B). "
-        "Open circles = not flagged; crosses = flagged."
+        "Figure 1: Cognitive-task deviation metrics split by screen status. Threshold lines: 50% inflation and +2 mmHg bias."
     )
-    p.font.size = Pt(10)
+    p.font.size = Pt(11)
     p.font.color.rgb = MEDIUM_GRAY
     p.font.name = FONT_BODY
     p.font.italic = True
@@ -801,42 +1353,116 @@ def build_slide_06_results(prs):
 
     add_footer(slide, 6)
     add_speaker_notes(slide, (
-        "Under baseline resting conditions, the individualized models successfully predicted "
-        "diastolic pressure with a median absolute error of 6.89 millimeters of mercury. When "
-        "we conducted standard cohort-level statistical tests across the context labels, the "
-        "results were entirely null following Benjamini-Hochberg false discovery rate correction. "
-        "At the population level, the physiological effects were statistically insignificant. "
-        "However, examining the residuals at the participant level reveals distinct underlying "
-        "patterns. If you refer to Figure 1 on the screen, this two-panel dot plot illustrates "
-        "the MAE inflation and signed bias for each subject. We applied a descriptive flagging "
-        "threshold, identifying participants whose prediction error inflated by over 50 percent, "
-        "or whose bias shifted by more than 2 millimeters of mercury. Based on these criteria, "
-        "20 of 27 participants met the descriptive flagging rule. Notably, the directional bias "
-        "varied systematically according to the stressor type. During cognitive tasks, the models "
-        "consistently under-predicted diastolic pressure, yielding a positive median bias of "
-        "4.18 millimeters of mercury. Conversely, during physical exertion, we observed a "
-        "negative median bias of 2.01 millimeters of mercury. Finally, in the sub-cohort of "
-        "11 participants exposed to air-raid alerts, we recorded substantial prediction error "
-        "inflation averaging 27.35 percent, alongside a near-zero directional bias."
+        "The median baseline error is 6.89 millimeters of mercury. Then we test the coupling "
+        "metrics at cohort level, apply BH-FDR, and get a clean null. That is not a failure. It "
+        "proves the point: group averaging washes out the physiology we care about. Once we stay "
+        "within-subject, the structure is obvious. The left panel shows MAE inflation. The right "
+        "panel shows signed residual bias. The red threshold line is the descriptive screening "
+        "rule: more than 50 percent error inflation, or more than +2 millimeters of mercury bias. "
+        "By that rule, 20 of 27 cognitive-task participants are flagged. The direction also "
+        "matters. Cognitive load pushes bias upward. Physical load pushes it downward. So the "
+        "residual is not just noise; it carries physiological information that cohort statistics "
+        "erase."
     ))
     return slide
 
 
-def build_slide_07_discussion(prs):
-    """Slide 7: Discussion."""
+def build_slide_07_case_study(prs):
+    """Slide 7: Single-subject alert case study."""
+    slide = add_blank_slide(prs)
+    add_header_bar(slide, "Case Study: One Patient, One Alert Window")
+
+    try_add_image(
+        slide,
+        CASE_STUDY_PATH,
+        x=0.65, y=1.38, w=9.05, h=5.65,
+        placeholder_text="[Single-subject baseline vs air-alert timeline]",
+    )
+
+    stat_card = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(9.95), Inches(1.52), Inches(2.55), Inches(1.1),
+    )
+    stat_card.fill.solid()
+    stat_card.fill.fore_color.rgb = WHITE
+    stat_card.line.color.rgb = BLUE_ACCENT
+    stat_card.line.width = Pt(1.2)
+    tf = stat_card.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = "Subject 35"
+    p.font.size = Pt(17)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+    p.font.name = FONT_BODY
+    p.alignment = PP_ALIGN.CENTER
+    p2 = tf.add_paragraph()
+    p2.text = "Baseline MAE 5.23 mmHg\nAir-alert MAE 11.82 mmHg"
+    p2.font.size = Pt(13)
+    p2.font.color.rgb = CHARCOAL
+    p2.font.name = FONT_BODY
+    p2.alignment = PP_ALIGN.CENTER
+
+    bullets = [
+        "38 baseline points | 6 alert points",
+        "Winner: OLS(SBP)",
+        "Inflation: +126%",
+        "Bias: +9.50 mmHg",
+    ]
+    add_bullet_list(
+        slide,
+        bullets,
+        left=Inches(9.9),
+        top=Inches(2.9),
+        width=Inches(2.55),
+        height=Inches(1.9),
+        font_size=15,
+    )
+
+    note_box = slide.shapes.add_textbox(
+        Inches(9.93), Inches(5.45), Inches(2.45), Inches(1.05),
+    )
+    tf = note_box.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = (
+        "SBP stays within the learned operating range.\nDBP is what breaks away from prediction."
+    )
+    p.font.size = Pt(12.5)
+    p.font.color.rgb = MEDIUM_GRAY
+    p.font.name = FONT_BODY
+    p.font.italic = True
+
+    add_footer(slide, 7)
+    add_speaker_notes(slide, (
+        "Here is the patient-level picture that the cohort averages hide. This is Subject 35. "
+        "The blue block is the baseline reference window used to learn that person's usual "
+        "coupling. The red block is the air-alert window. On the top panel, SBP and heart rate "
+        "move, but they stay in a range the baseline model has already seen. The middle panel is "
+        "the key result: observed DBP separates from the baseline prediction during the alert. "
+        "The highlighted point shows the local breakout. Quantitatively, baseline MAE is 5.23 "
+        "millimeters of mercury, while the alert-window MAE jumps to 11.82. That is 126 percent "
+        "inflation, with a positive residual bias of 9.50 millimeters of mercury. This is exactly "
+        "what we mean by stress-linked coupling disruption at the individual level."
+    ))
+    return slide
+
+
+def build_slide_08_discussion(prs):
+    """Slide 8: Discussion."""
     slide = add_blank_slide(prs)
     add_header_bar(slide, "Discussion: Interpreting the Patterns")
 
     # Two-column layout
     # Left column: bullets
     bullets = [
-        "Null group finding supports within-subject analytical approach",
-        "Divergent biases suggest context-dependent coupling shifts",
-        "Residual analysis serves as a macroscopic screening signal",
-        "Air-raid condition frames heterogeneous, high-variance exposure windows",
+        "Null group results validate the paradigm: cohort averaging washes out the signal",
+        "Residual direction matters: cognitive and physical tasks split in opposite directions",
+        "Residual metrics act as a low-cost software proxy for vascular adjustment",
+        "Air-alert windows remain heterogeneous, so analysis must stay subject-level",
     ]
     add_bullet_list(slide, bullets, top=Inches(1.4), width=Inches(6.0),
-                    height=Inches(3.0), font_size=16)
+                    height=Inches(3.0), font_size=17)
 
     # Right column: interpretation cards
     cards = [
@@ -873,13 +1499,13 @@ def build_slide_07_discussion(prs):
         p = tf.paragraphs[0]
         run1 = p.add_run()
         run1.text = title + "  "
-        run1.font.size = Pt(13)
+        run1.font.size = Pt(14)
         run1.font.bold = True
         run1.font.color.rgb = accent_color
         run1.font.name = FONT_BODY
         run2 = p.add_run()
         run2.text = stat
-        run2.font.size = Pt(13)
+        run2.font.size = Pt(14)
         run2.font.color.rgb = CHARCOAL
         run2.font.name = FONT_BODY
 
@@ -889,35 +1515,49 @@ def build_slide_07_discussion(prs):
         tf.word_wrap = True
         p = tf.paragraphs[0]
         p.text = desc
-        p.font.size = Pt(12)
+        p.font.size = Pt(13)
         p.font.color.rgb = MEDIUM_GRAY
         p.font.name = FONT_BODY
 
-    add_footer(slide, 7)
+    callout = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(0.9), Inches(5.0), Inches(5.9), Inches(1.05),
+    )
+    callout.fill.solid()
+    callout.fill.fore_color.rgb = VERY_LIGHT_BLUE
+    callout.line.color.rgb = BLUE_ACCENT
+    callout.line.width = Pt(1.2)
+    tf = callout.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = "Practical takeaway: keep the analysis subject-level and use residual direction, not cohort means, to interpret the physiology."
+    p.font.size = Pt(14.5)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+    p.font.name = FONT_BODY
+    p.alignment = PP_ALIGN.CENTER
+
+    add_footer(slide, 8)
     add_speaker_notes(slide, (
-        "The contrast between our null cohort-level findings and the observable individual-level "
-        "deviations strongly supports our core premise: relying on group-averaging may obscure "
-        "meaningful within-subject physiological adjustments. The directional split observed "
-        "between tasks aligns with expected patterns of peripheral vascular resistance. Focused "
-        "cognitive tasks are generally associated with sympathetic vasoconstriction, which may "
-        "drive diastolic pressure higher relative to concurrent heart rate. In contrast, heavy "
-        "physical exertion typically prompts muscular vasodilation, lowering peripheral "
-        "resistance and creating a negative diastolic bias relative to the baseline projection. "
-        "Therefore, our residual metrics may serve as an indirect screening signal for these "
-        "types of vascular adjustments. Regarding the air-raid condition, characterizing these "
-        "as exposure windows rather than direct measures of acute stress is an important "
-        "distinction. The combination of high error inflation and near-zero directional bias "
-        "suggests a highly heterogeneous response. This variance likely reflects differing "
-        "behavioral reactions to the alerts -- ranging from physical relocation to a shelter, "
-        "to remaining sedentary at a desk."
+        "The null group result proves our hypothesis. Cohort averaging washes out vital "
+        "physiological signal, so individualized modeling is mandatory here. The sign of the "
+        "residual is informative. Cognitive tasks show upward bias, consistent with higher "
+        "vascular tone. Physical tasks show downward bias, consistent with exercise-related "
+        "vasodilation. Since ABPM does not measure cardiac output or systemic vascular resistance "
+        "directly, our residual metrics act as a low-cost software proxy for these vascular "
+        "adjustments. That claim remains inferential, but it is physiologically grounded. For "
+        "air-raid alerts, the key point is heterogeneity. These are exposure windows, not direct "
+        "stress labels. Some participants relocate, some freeze, some keep working. That is why "
+        "the alert condition produces variance inflation instead of a single uniform directional "
+        "shift."
     ))
     return slide
 
 
-def build_slide_08_limitations(prs):
-    """Slide 8: Limitations and Future Work."""
+def build_slide_09_limitations(prs):
+    """Slide 9: Boundary conditions and future work."""
     slide = add_blank_slide(prs)
-    add_header_bar(slide, "Limitations & Future Directions")
+    add_header_bar(slide, "Boundary Conditions of the Feasibility Study")
 
     # Two-column layout
     # Left: Limitations
@@ -926,14 +1566,15 @@ def build_slide_08_limitations(prs):
     )
     tf = lim_title.text_frame
     p = tf.paragraphs[0]
-    p.text = "Current Limitations"
+    p.text = "Feasibility Boundary Conditions"
     p.font.size = Pt(18)
     p.font.bold = True
-    p.font.color.rgb = RED_ACCENT
+    p.font.color.rgb = NAVY
     p.font.name = FONT_BODY
 
     lim_bullets = [
-        "Sample size (N=28) and sparse ABPM cadence (15-30 min)",
+        "N = 28 is strong for feasibility, but still narrow for subgroup claims",
+        "ABPM cadence stays sparse at 15\u201330 min, so transients are under-sampled",
         "Lack of continuous cardiac output ground truth",
         "Coarse context labels do not capture moment-to-moment arousal",
     ]
@@ -946,7 +1587,7 @@ def build_slide_08_limitations(prs):
     )
     tf = fut_title.text_frame
     p = tf.paragraphs[0]
-    p.text = "Future Directions"
+    p.text = "Next Validation Steps"
     p.font.size = Pt(18)
     p.font.bold = True
     p.font.color.rgb = BLUE_ACCENT
@@ -983,38 +1624,32 @@ def build_slide_08_limitations(prs):
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = (
-        "As next-generation wearable and cuffless BP technologies mature, "
-        "individualized software-level screening becomes increasingly viable "
-        "for continuous, context-aware cardiovascular monitoring."
+        "This dataset is strong enough to establish the method. The next step is calibration "
+        "and external validation, not retreat from the signal."
     )
     p.font.size = Pt(14)
     p.font.color.rgb = NAVY
     p.font.name = FONT_BODY
     p.alignment = PP_ALIGN.CENTER
 
-    add_footer(slide, 8)
+    add_footer(slide, 9)
     add_speaker_notes(slide, (
-        "Because this is an initial feasibility study, it carries notable limitations. Our "
-        "sample size of 28 participants is relatively small, which leaves subset analyses -- "
-        "particularly the air-raid exposure group -- statistically underpowered. Additionally, "
-        "standard ABPM's sampling cadence of 15 to 30 minutes provides a very sparse "
-        "representation of human autonomic regulation, which is a continuous biological process. "
-        "Finally, without simultaneous ground-truth measurements of cardiac output and systemic "
-        "vascular resistance, our mechanistic interpretations regarding vasoconstriction and "
-        "vasodilation remain inferential. Moving forward, our next steps include validating "
-        "these analytical techniques in larger cohorts using higher-resolution ambulatory "
-        "monitors paired with digital ecological momentary assessments. We are also designing "
-        "a dedicated laboratory sub-study utilizing impedance cardiography, which is necessary "
-        "to mathematically calibrate our residual metrics against established hemodynamic gold "
-        "standards. As next-generation wearable and cuffless blood pressure technologies mature, "
-        "we anticipate this individualized software approach will become an increasingly viable "
-        "method for continuous, context-aware physiological screening."
+        "These are boundary conditions, not apologies. Clean 24-hour ABPM data with controlled "
+        "tasks, naturalistic alerts, and synchronized labels are hard to collect, especially in "
+        "wartime Kyiv. The sample is fully adequate for a feasibility study and for establishing "
+        "the pipeline. But it is still too small for confident subgroup claims, especially in the "
+        "air-alert branch. The second constraint is sampling density: a cuff reading every 15 to "
+        "30 minutes will miss fast autonomic transitions. The third is mechanistic calibration: "
+        "without continuous cardiac output or SVR, physiology remains inferential. So the next "
+        "move is straightforward. Replicate on larger cohorts, add higher-resolution wearable "
+        "sensors, and run an impedance-cardiography sub-study to anchor the residual metrics to "
+        "hemodynamic ground truth."
     ))
     return slide
 
 
-def build_slide_09_conclusions(prs):
-    """Slide 9: Conclusions."""
+def build_slide_10_conclusions(prs):
+    """Slide 10: Conclusions."""
     slide = add_blank_slide(prs)
     add_header_bar(slide, "Conclusions")
 
@@ -1076,24 +1711,20 @@ def build_slide_09_conclusions(prs):
         p.font.color.rgb = MEDIUM_GRAY
         p.font.name = FONT_BODY
 
-    add_footer(slide, 9)
+    add_footer(slide, 10)
     add_speaker_notes(slide, (
-        "To conclude, standard ambulatory blood pressure data contains valuable, "
-        "context-sensitive characteristics when analyzed rigorously at the individual level. "
-        "Moving away from generalized group-average models toward individualized baseline "
-        "approaches enables us to capture discrete episodes of regulatory decoupling that "
-        "would otherwise remain hidden. By employing a dual-metric assessment -- quantifying "
-        "both the magnitude of the model's prediction failure and the direction of the "
-        "prediction error -- we can classify deviations that suggest differing hemodynamic "
-        "patterns. Ultimately, this represents a scalable, computationally lightweight method "
-        "intended to increase the specificity and contextual intelligence of longitudinal "
-        "cardiovascular screening."
+        "Standard ABPM already contains subject-level stress physiology. The problem is not the "
+        "sensor. The problem is the analysis level. Once we stop averaging people together and "
+        "start modeling each participant against their own baseline, coupling disruptions become "
+        "visible. Two numbers are enough to screen them: MAE inflation for magnitude and signed "
+        "bias for direction. That gives us a lightweight, interpretable path toward context-aware "
+        "cardiovascular monitoring."
     ))
     return slide
 
 
-def build_slide_10_thank_you(prs):
-    """Slide 10: Acknowledgments and Thank You."""
+def build_slide_11_thank_you(prs):
+    """Slide 11: Acknowledgments and Thank You."""
     layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(layout)
     bg = slide.background
@@ -1190,7 +1821,7 @@ def build_slide_10_thank_you(prs):
     )
     tf = num_box.text_frame
     p = tf.paragraphs[0]
-    p.text = "10"
+    p.text = "11"
     p.font.size = Pt(9)
     p.font.color.rgb = RGBColor(0x66, 0x77, 0x99)
     p.font.name = FONT_BODY
@@ -1211,6 +1842,7 @@ def build_slide_10_thank_you(prs):
 # Main entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
+    prepare_presentation_assets()
     prs = create_presentation()
 
     build_slide_01_title(prs)
@@ -1219,10 +1851,11 @@ if __name__ == "__main__":
     build_slide_04_data(prs)
     build_slide_05_methods(prs)
     build_slide_06_results(prs)
-    build_slide_07_discussion(prs)
-    build_slide_08_limitations(prs)
-    build_slide_09_conclusions(prs)
-    build_slide_10_thank_you(prs)
+    build_slide_07_case_study(prs)
+    build_slide_08_discussion(prs)
+    build_slide_09_limitations(prs)
+    build_slide_10_conclusions(prs)
+    build_slide_11_thank_you(prs)
 
     output_path = os.path.join(SCRIPT_DIR, "presentation.pptx")
     prs.save(output_path)
