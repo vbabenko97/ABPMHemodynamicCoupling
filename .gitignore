@@ -39,6 +39,10 @@ tmp/
 artifacts/
 /results/thesis/
 
+# Private manuscripts and presentation drafts (local-only)
+/docs/ieee_elnano/
+/docs/thesis/
+
 # Local analysis and presentation exports
 /presentation.pdf
 /presentation.pptx
