@@ -1,0 +1,23 @@
+# Thesis analysis environment — pinned versions for reproducibility.
+# Install with:  pip install -r requirements-thesis.txt
+#
+# These extend the base requirements.txt used by the main pipeline.
+
+# --- Core scientific stack (same as base, pinned) ---
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.15.3
+scikit-learn==1.8.0
+matplotlib==3.10.0
+seaborn==0.13.2
+statsmodels==0.14.4
+openpyxl==3.1.5
+
+# --- Thesis-specific additions ---
+pingouin>=0.5.4          # ICC computation (notebooks 01, 05)
+scikit-posthocs>=0.9.0   # post-hoc non-parametric tests (notebook 04)
+tableone>=0.9.1          # optional: TableOne generation
+
+# --- Notebook execution ---
+nbconvert==7.16.6
+jupyter>=1.0.0
