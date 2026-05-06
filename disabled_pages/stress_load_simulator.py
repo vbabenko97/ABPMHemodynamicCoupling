@@ -1,5 +1,10 @@
 """
 Streamlit page for the synthetic stress/workload simulator.
+
+DISABLED for the thesis scope (peripheral arterial tone assessment). The
+file lives outside `pages/` because Streamlit 1.56's MPA v1 page discovery
+ignores only dot-prefixed files, not underscore-prefixed ones. To re-enable,
+move this file back to `pages/1_stress_load_simulator.py`.
 """
 
 from __future__ import annotations
