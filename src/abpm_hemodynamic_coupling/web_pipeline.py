@@ -191,12 +191,19 @@ class WebPipeline:
 
         mask_keep = pd.Series(True, index=df.index)
         counts: dict[str, int] = {}
+        coerced: dict[str, pd.Series] = {}
 
         for col, (lo, hi) in ranges.items():
             if col not in df.columns:
                 continue
             values = pd.to_numeric(df[col], errors="coerce")
-            invalid = values.notna() & (~np.isfinite(values) | (values < lo) | (values > hi))
+            coerced[col] = values
+            # A non-empty cell that fails numeric coercion is invalid (drop it),
+            # as are non-finite or out-of-range values. Genuinely empty cells are
+            # left for the downstream dropna so they are not double-counted here.
+            non_numeric = values.isna() & df[col].notna()
+            out_of_range = values.notna() & (~np.isfinite(values) | (values < lo) | (values > hi))
+            invalid = non_numeric | out_of_range
             n_bad = int(invalid.sum())
             if n_bad:
                 counts[col] = n_bad
@@ -204,6 +211,10 @@ class WebPipeline:
 
         dropped = df[~mask_keep].copy()
         cleaned = df[mask_keep].copy()
+        # Write back the coerced numeric values so surviving physiological columns
+        # carry a numeric dtype for the downstream strict validator.
+        for col, values in coerced.items():
+            cleaned[col] = values[mask_keep]
         return cleaned, SanitizationReport(dropped_rows=dropped, counts=counts)
 
     def validate_and_preprocess(self, df_raw: pd.DataFrame) -> pd.DataFrame:
