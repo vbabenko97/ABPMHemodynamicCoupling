@@ -244,9 +244,11 @@ class WebPipeline:
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
             tmp_path = Path(tmp.name)
 
-        cohort.generate_summary(res_df, tmp_path)
-        text = tmp_path.read_text()
-        tmp_path.unlink(missing_ok=True)
+        try:
+            cohort.generate_summary(res_df, tmp_path)
+            text = tmp_path.read_text()
+        finally:
+            tmp_path.unlink(missing_ok=True)
         return self._localize_summary_text(text)
 
     def _localize_summary_text(self, text: str) -> str:
@@ -347,12 +349,13 @@ class WebPipeline:
 
     def _build_baseline_stats(self, res_df: pd.DataFrame) -> dict[str, float | int]:
         """Build baseline MAE summary statistics."""
+        empty_stats = {"n": 0, "median": np.nan, "q25": np.nan, "q75": np.nan, "min": np.nan, "max": np.nan}
         if "DBP_Ref_MAE" not in res_df.columns:
-            return {"n": 0, "median": np.nan, "q25": np.nan, "q75": np.nan, "min": np.nan, "max": np.nan}
+            return empty_stats
 
         values = res_df["DBP_Ref_MAE"].dropna()
         if values.empty:
-            return {"n": 0, "median": np.nan, "q25": np.nan, "q75": np.nan, "min": np.nan, "max": np.nan}
+            return empty_stats
 
         return {
             "n": int(len(values)),
@@ -376,7 +379,11 @@ class WebPipeline:
             bias_col = f"DBP_{condition_key}_DeltaBias"
             n_col = f"DBP_{condition_key}_N"
 
-            if anomaly_col not in res_df.columns or bias_col not in res_df.columns:
+            if (
+                anomaly_col not in res_df.columns
+                or bias_col not in res_df.columns
+                or n_col not in res_df.columns
+            ):
                 continue
 
             valid = res_df[res_df[n_col] > 0]

@@ -5,6 +5,7 @@ Visualization and Figure Generation
 Generates all research figures with consistent styling.
 """
 
+import traceback
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -388,7 +389,7 @@ class VisualizationManager:
             df: Monitoring data DataFrame
             res_df: Per-subject results DataFrame
         """
-        print("\\n" + "="*80)
+        print("\n" + "="*80)
         print("GENERATING FIGURES")
         print("="*80)
         
@@ -397,6 +398,7 @@ class VisualizationManager:
                 generator.generate(df, res_df)
             except Exception as e:
                 print(f"Error generating {generator.__class__.__name__}: {e}")
+                traceback.print_exc()
 
     def generate_all_figures(
         self, df: pd.DataFrame, res_df: pd.DataFrame
@@ -411,4 +413,5 @@ class VisualizationManager:
                     figures[name] = fig
             except Exception as e:
                 print(f"Error generating {generator.__class__.__name__}: {e}")
+                traceback.print_exc()
         return figures

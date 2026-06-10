@@ -27,7 +27,6 @@ from abpm_hemodynamic_coupling.feature_engineering import DBPFeatureExtractor
 from abpm_hemodynamic_coupling.modeling import CrossValidator, ModelTrainer
 from abpm_hemodynamic_coupling.models import ConditionMetrics, SubjectResult
 from abpm_hemodynamic_coupling.stats_analysis import (
-    CorrelationAnalyzer,
     DistributionAnalyzer,
     MultipleTestingCorrector,
 )
@@ -166,19 +165,18 @@ class CohortAnalyzer:
     def __init__(self, config: Config):
         self.config = config
         self.dist_analyzer = DistributionAnalyzer(config)
-        self.corr_analyzer = CorrelationAnalyzer(config)
         self.mtc = MultipleTestingCorrector(config)
     
     def generate_summary(self, res_df: pd.DataFrame, output_file: Path):
         """Generate results summary file."""
         with open(output_file, 'w') as f:
-            f.write("RESULTS SUMMARY\\n")
-            f.write("=" * 40 + "\\n\\n")
+            f.write("RESULTS SUMMARY\n")
+            f.write("=" * 40 + "\n\n")
             
             # Model counts for DBP
             if "DBP_Winner" in res_df.columns:
-                f.write("DBP Model Counts:\\n")
-                f.write(f"{res_df['DBP_Winner'].value_counts()}\\n\\n")
+                f.write("DBP Model Counts:\n")
+                f.write(f"{res_df['DBP_Winner'].value_counts()}\n\n")
             
             # Baseline MAE distribution
             self._write_baseline_stats(f, res_df)
@@ -351,9 +349,9 @@ class CohortAnalyzer:
         if b_maes.empty:
             return
         
-        f.write(f"Baseline (Train) MAE Distribution (N={len(b_maes)}):\\n")
-        f.write(f"  Median [IQR]: {np.median(b_maes):.2f} [{np.percentile(b_maes, 25):.2f}, {np.percentile(b_maes, 75):.2f}] mmHg\\n")
-        f.write(f"  Range: [{b_maes.min():.2f}, {b_maes.max():.2f}] mmHg\\n\\n")
+        f.write(f"Baseline (Train) MAE Distribution (N={len(b_maes)}):\n")
+        f.write(f"  Median [IQR]: {np.median(b_maes):.2f} [{np.percentile(b_maes, 25):.2f}, {np.percentile(b_maes, 75):.2f}] mmHg\n")
+        f.write(f"  Range: [{b_maes.min():.2f}, {b_maes.max():.2f}] mmHg\n\n")
     
     def _write_task_analysis(self, f, res_df):
         """Write task condition analysis with FDR correction."""
@@ -401,21 +399,21 @@ class CohortAnalyzer:
             q_anom = q_lookup.get((cond, "Anomaly"), 1.0)
             q_bias = q_lookup.get((cond, "Delta Bias"), 1.0)
             
-            f.write(f"\\nDBP {cond} (N={len(valid)})\\n")
-            f.write(f"  Median MAE inflation = {stats_anom.median:.2f}%; Wilcoxon p={stats_anom.p_value:.4f} (q={q_anom:.4f})\\n")
-            f.write(f"  Median delta_bias = {stats_bias.median:.2f} mmHg; Wilcoxon p={stats_bias.p_value:.4f} (q={q_bias:.4f})\\n")
+            f.write(f"\nDBP {cond} (N={len(valid)})\n")
+            f.write(f"  Median MAE inflation = {stats_anom.median:.2f}%; Wilcoxon p={stats_anom.p_value:.4f} (q={q_anom:.4f})\n")
+            f.write(f"  Median delta_bias = {stats_bias.median:.2f} mmHg; Wilcoxon p={stats_bias.p_value:.4f} (q={q_bias:.4f})\n")
             
             # Responder count for cognitive task
             if cond == Columns.LABEL_COGNITIVE_TASK:
                 n_resp = ((valid[col_anom] > self.config.RESPONDER_ANOMALY_THRESHOLD) |
                          (valid[col_bias] > self.config.RESPONDER_BIAS_THRESHOLD)).sum()
-                f.write(f"  DBP Responders: {n_resp}/{len(valid)} ({100*n_resp/len(valid):.1f}%)\\n")
+                f.write(f"  DBP Responders: {n_resp}/{len(valid)} ({100*n_resp/len(valid):.1f}%)\n")
     
     def _write_subgroup_analysis(self, f, res_df):
         """Write responder vs non-responder analysis."""
-        f.write("\\n" + "=" * 40 + "\\n")
-        f.write("SUBGROUP ANALYSIS: RESPONDERS VS NON-RESPONDERS\\n")
-        f.write("=" * 40 + "\\n")
+        f.write("\n" + "=" * 40 + "\n")
+        f.write("SUBGROUP ANALYSIS: RESPONDERS VS NON-RESPONDERS\n")
+        f.write("=" * 40 + "\n")
         
         # Define responders
         res_df["Is_Responder"] = (
@@ -427,7 +425,7 @@ class CohortAnalyzer:
         resp = valid_task[valid_task["Is_Responder"] == 1]
         non_resp = valid_task[valid_task["Is_Responder"] == 0]
         
-        f.write(f"N Responders: {len(resp)}, N Non-Responders: {len(non_resp)}\\n\\n")
+        f.write(f"N Responders: {len(resp)}, N Non-Responders: {len(non_resp)}\n\n")
         
         # Compare metrics
         metrics = [
@@ -449,10 +447,10 @@ class CohortAnalyzer:
             
             u, p = mannwhitneyu(g_resp, g_non)
             
-            f.write(f"{m}:\\n")
-            f.write(f"  Responders: {np.median(g_resp):.2f} [{np.percentile(g_resp, 25):.2f}, {np.percentile(g_resp, 75):.2f}] {unit}\\n")
-            f.write(f"  Non-Responders: {np.median(g_non):.2f} [{np.percentile(g_non, 25):.2f}, {np.percentile(g_non, 75):.2f}] {unit}\\n")
-            f.write(f"  MW-U Test: U={u:.1f}, p={p:.4f}\\n\\n")
+            f.write(f"{m}:\n")
+            f.write(f"  Responders: {np.median(g_resp):.2f} [{np.percentile(g_resp, 25):.2f}, {np.percentile(g_resp, 75):.2f}] {unit}\n")
+            f.write(f"  Non-Responders: {np.median(g_non):.2f} [{np.percentile(g_non, 25):.2f}, {np.percentile(g_non, 75):.2f}] {unit}\n")
+            f.write(f"  MW-U Test: U={u:.1f}, p={p:.4f}\n\n")
 
 
 def main():
@@ -525,10 +523,7 @@ def main():
         config.get_results_path(config.BRANDON_FEATURE_COUNTS_OUTPUT),
     )
     print(f"Brandon summary saved: {config.get_results_path(config.BRANDON_SUMMARY_OUTPUT)}")
-    
-    # TODO: Add correlation analysis if aggregated data available
-    # TODO: Add classifier training if classifier data available
-    
+
     # Generate figures
     viz_manager = VisualizationManager(config)
     viz_manager.generate_all(df, res_df)

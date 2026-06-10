@@ -6,7 +6,7 @@ Bootstrap confidence intervals, distribution stats, correlation analysis,
 and multiple testing correction.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -201,21 +201,3 @@ class MultipleTestingCorrector:
         
         _, q_values = fdrcorrection(p_values, alpha=self.config.FDR_ALPHA)
         return q_values.tolist()
-    
-    def create_lookup(
-        self,
-        keys: List[tuple],
-        p_values: List[float]
-    ) -> Dict[tuple, float]:
-        """
-        Create lookup dictionary for q-values.
-        
-        Args:
-            keys: List of keys (e.g., (condition, metric) tuples)
-            p_values: Corresponding p-values
-            
-        Returns:
-            Dictionary mapping keys to q-values
-        """
-        q_values = self.apply_fdr(p_values)
-        return {key: q for key, q in zip(keys, q_values, strict=False)}

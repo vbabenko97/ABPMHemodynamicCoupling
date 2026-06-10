@@ -353,8 +353,9 @@ class ResponderClassifier:
         X_scaled = scaler.fit_transform(X)
         
         # Cross-validation setup
+        n_splits = 3
         skf = StratifiedKFold(
-            n_splits=3,
+            n_splits=n_splits,
             shuffle=True,
             random_state=self.config.RANDOM_SEED
         )
@@ -410,10 +411,10 @@ class ResponderClassifier:
         
         # CV metrics (median)
         cv_metrics_median = ClassifierMetrics(
-            accuracy=np.median([grid.cv_results_[f'split{i}_test_accuracy'][best_idx] for i in range(3)]),
-            precision=np.median([grid.cv_results_[f'split{i}_test_precision'][best_idx] for i in range(3)]),
-            recall=np.median([grid.cv_results_[f'split{i}_test_recall'][best_idx] for i in range(3)]),
-            f1=np.median([grid.cv_results_[f'split{i}_test_f1'][best_idx] for i in range(3)])
+            accuracy=np.median([grid.cv_results_[f'split{i}_test_accuracy'][best_idx] for i in range(n_splits)]),
+            precision=np.median([grid.cv_results_[f'split{i}_test_precision'][best_idx] for i in range(n_splits)]),
+            recall=np.median([grid.cv_results_[f'split{i}_test_recall'][best_idx] for i in range(n_splits)]),
+            f1=np.median([grid.cv_results_[f'split{i}_test_f1'][best_idx] for i in range(n_splits)])
         )
         
         # Extract top coefficients

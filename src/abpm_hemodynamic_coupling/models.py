@@ -100,7 +100,7 @@ class SubjectResult:
             ("Physical Task", self.dbp_physical_task),
             ("Air Alert", self.dbp_air_alert),
         ]:
-            if cond_metrics:
+            if cond_metrics is not None:
                 result[f"DBP_{cond_name}_N"] = cond_metrics.n
                 result[f"DBP_{cond_name}_MAE"] = cond_metrics.mae
                 result[f"DBP_{cond_name}_DeltaBias"] = cond_metrics.delta_bias

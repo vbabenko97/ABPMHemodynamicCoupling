@@ -47,17 +47,13 @@ class Labeler:
         if row.get(Columns.IS_COG, 0) == 1:
             if row.get(Columns.PRE, 0) == 1:
                 return Columns.LABEL_COGNITIVE_PRE
-            if row.get(Columns.DURING, 0) == 1 or row.get(Columns.POST, 0) == 1:
-                return Columns.LABEL_COGNITIVE_TASK
-            return Columns.LABEL_COGNITIVE_TASK  # Fallback
+            return Columns.LABEL_COGNITIVE_TASK
         
         # Physical tasks
         if row.get(Columns.IS_PHYS, 0) == 1:
             if row.get(Columns.PRE, 0) == 1:
                 return Columns.LABEL_PHYSICAL_PRE
-            if row.get(Columns.DURING, 0) == 1 or row.get(Columns.POST, 0) == 1:
-                return Columns.LABEL_PHYSICAL_TASK
-            return Columns.LABEL_PHYSICAL_TASK  # Fallback
+            return Columns.LABEL_PHYSICAL_TASK
         
         # Sleep
         if row.get(Columns.STATE, 0) == 1:
@@ -141,33 +137,6 @@ class DataValidator:
             Config.MIN_HR,
             Config.MAX_HR,
         )
-    
-    @staticmethod
-    def check_subject_data_quality(
-        df_subject: pd.DataFrame,
-        min_samples: int,
-        subject_id: int
-    ) -> bool:
-        """
-        Check if subject has sufficient quality data.
-        
-        Args:
-            df_subject: Subject's data
-            min_samples: Minimum required samples
-            subject_id: Subject ID for logging
-            
-        Returns:
-            True if data quality is sufficient
-        """
-        if len(df_subject) < min_samples:
-            return False
-        
-        # Check for excessive missing values
-        missing_pct = df_subject[[Columns.SBP, Columns.DBP, Columns.HR]].isnull().mean().mean()
-        if missing_pct > 0.5:
-            return False
-        
-        return True
 
     @staticmethod
     def sanitize_monitoring_data(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
