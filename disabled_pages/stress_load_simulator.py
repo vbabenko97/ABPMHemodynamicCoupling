@@ -15,7 +15,7 @@ from dataclasses import asdict
 import pandas as pd
 import streamlit as st
 
-from src.simulator import PersonProfile, PhysiologySimulator
+from abpm_hemodynamic_coupling.simulator import PersonProfile, PhysiologySimulator
 
 STATUS_LABELS = {
     "warmup": "Розігрів і побудова baseline",

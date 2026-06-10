@@ -21,7 +21,7 @@ def test_run_pipeline_module_imports_without_sys_path_hack() -> None:
 
 
 def test_simulator_module_imports_and_steps() -> None:
-    from src.simulator import PersonProfile, PhysiologySimulator
+    from abpm_hemodynamic_coupling.simulator import PersonProfile, PhysiologySimulator
 
     simulator = PhysiologySimulator(
         PersonProfile(
