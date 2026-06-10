@@ -229,7 +229,10 @@ class Figure3Generator(FigureGenerator):
             # Annotations
             anom = row_res["DBP_Cognitive Task_Anomaly"].iloc[0]
             bias = row_res["DBP_Cognitive Task_DeltaBias"].iloc[0]
-            desc = "(ДАТ вищий за прогноз)" if anom < 0 else "(ДАТ нижчий за прогноз)"
+            # Direction of the residual comes from the signed bias (median of
+            # observed - predicted), not the magnitude-only anomaly: bias > 0
+            # means observed DBP runs above the baseline model's prediction.
+            desc = "(ДАТ вищий за прогноз)" if bias > 0 else "(ДАТ нижчий за прогноз)"
             textstr = '\n'.join((
                 r'$A_{i,cog} = %.1f\%%$' % (anom, ),
                 r'$\Delta Bias_{i,cog} = %.2f$ mmHg' % (bias, ),
