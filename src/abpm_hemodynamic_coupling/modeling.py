@@ -180,10 +180,11 @@ class CrossValidator:
             except (np.linalg.LinAlgError, ValueError):
                 scores["Brandon"].append(np.nan)
             
-            # Lasso
+            # Lasso (ignore ConvergenceWarning to match ModelTrainer.train; a
+            # non-converged fit is still scored rather than discarded as NaN)
             try:
                 with warnings.catch_warnings():
-                    warnings.simplefilter("error", ConvergenceWarning)
+                    warnings.simplefilter("ignore", ConvergenceWarning)
                     model = LassoCV(
                         cv=self.config.LASSO_CV_FOLDS,
                         max_iter=self.config.LASSO_MAX_ITER,
@@ -193,7 +194,7 @@ class CrossValidator:
                     ).fit(X_train, y_train)
                 pred = model.predict(X_val)
                 scores["Lasso"].append(mean_absolute_error(y_val, pred))
-            except (ConvergenceWarning, ValueError):
+            except ValueError:
                 scores["Lasso"].append(np.nan)
             
             # RFE
