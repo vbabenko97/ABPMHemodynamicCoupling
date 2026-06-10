@@ -4,11 +4,9 @@ This repository is a mixed research and application codebase. The structure is i
 
 ## Top-level map
 
-- `src/`: reusable analysis package used by the pipeline and tests
-- `analysis/`: study-specific analysis code and notebooks that sit outside the main package surface
-  - `analysis/thesis/`: thesis-track statistics helpers and EDA notebooks
-  - `analysis/hemodynamic_reactivity/`: hemodynamic-reactivity sub-analysis (scripts, notebooks, reports)
-- `app.py` and `pages/`: Streamlit application entrypoints
+- `src/abpm_hemodynamic_coupling/`: reusable analysis package used by the pipeline and tests
+- `analysis/`: local-only, study-specific exploration (notebooks, draft figures, self-contained sub-analyses); gitignored except `analysis/README.md`
+- `app.py`: Streamlit application entrypoint (single page). Optional pages are parked in `disabled_pages/` and can be restored under `pages/` to re-enable them
 - `run_pipeline.py`: batch analysis entrypoint
 - `scripts/`: one-off operational helpers for figure, presentation, and article preparation
 - `tests/`: regression and smoke tests
@@ -16,13 +14,13 @@ This repository is a mixed research and application codebase. The structure is i
 - `results/`: committed research outputs referenced by the published paper
 - `artifacts/`: larger generated outputs such as thesis figures, tables, and intermediate exports (gitignored)
 - `docs/`: papers, article drafts, conference material, and supporting documentation
-  - `docs/ieee_elnano/`: IEEE ELNANO 2026 paper sources, presentation, and brand assets
-  - `docs/thesis/`: Ukrainian thesis drafts (`drafts/`), figures, and tables
+  - `docs/ieee_elnano/`: IEEE ELNANO 2026 paper sources, presentation, and brand assets (gitignored)
+  - `docs/bshka/`: Ukrainian-language article drafts (`drafts/`), figures, and tables (gitignored)
 - `assets/`: static assets such as the project logo referenced by README and docs
 
 ## Working conventions
 
-- Put reusable code in `src/`, not in notebooks.
+- Put reusable code in `src/abpm_hemodynamic_coupling/`, not in notebooks.
 - Keep repo-hygiene changes separate from scientific-method changes.
 - Commit only research outputs that are part of the documented research record; route larger or reproducible artifacts through `artifacts/` so they stay out of version control.
 - Use `scripts/` for repeatable helpers. Do not add ad hoc shell snippets to the repository root.

@@ -28,24 +28,22 @@ ABPM Hemodynamic Coupling is a Python research pipeline for analyzing stress-lin
 
 ```text
 ABPMHemodynamicCoupling/
-├── src/                         # Reusable analysis package
-├── analysis/                    # Study-specific analysis code and notebooks
-│   ├── thesis/                  # Thesis-track stats helpers and EDA notebooks
-│   └── hemodynamic_reactivity/  # Hemodynamic-reactivity sub-analysis
-├── app.py                       # Streamlit app entry point
-├── pages/                       # Streamlit multipage views
-├── run_pipeline.py              # Batch analysis entry point
-├── scripts/                     # Repeatable helper scripts
-├── tests/                       # Regression and smoke tests
-├── data/                        # Local input datasets (gitignored)
-├── results/                     # Committed research outputs
-├── artifacts/                   # Larger generated outputs (gitignored)
-├── docs/                        # Papers, drafts, and conference material
-│   ├── ieee_elnano/             # IEEE ELNANO 2026 paper and presentation
-│   └── thesis/                  # Ukrainian thesis drafts, figures, tables
-├── assets/                      # Logo and static assets
-├── .github/                     # CI, issue templates, ownership metadata
-└── pyproject.toml               # Package and tool configuration
+├── src/abpm_hemodynamic_coupling/  # Reusable analysis package
+├── analysis/                       # Local-only study-specific exploration (gitignored)
+├── app.py                          # Streamlit app entry point (single page)
+├── disabled_pages/                 # Parked optional Streamlit pages (stress-load simulator)
+├── run_pipeline.py                 # Batch analysis entry point
+├── scripts/                        # Repeatable helper scripts
+├── tests/                          # Regression and smoke tests
+├── data/                           # Local input datasets (gitignored)
+├── results/                        # Committed research outputs
+├── artifacts/                      # Larger generated outputs (gitignored)
+├── docs/                           # Papers, drafts, and conference material
+│   ├── ieee_elnano/                # IEEE ELNANO 2026 paper and presentation (gitignored)
+│   └── bshka/                      # Ukrainian-language article drafts, figures, tables (gitignored)
+├── assets/                         # Logo and static assets
+├── .github/                        # CI, issue templates, ownership metadata
+└── pyproject.toml                  # Package and tool configuration
 ```
 
 See [docs/REPOSITORY_LAYOUT.md](docs/REPOSITORY_LAYOUT.md) for the operating conventions behind this split.
@@ -128,7 +126,7 @@ Use `uv.lock` as the canonical lockfile for reproducible local environments. `re
 
 ## Reproducibility
 
-- Core configuration lives in `src/config.py`.
+- Core configuration lives in `src/abpm_hemodynamic_coupling/config.py`.
 - The repository fixes `RANDOM_SEED = 42`, `FDR_ALPHA = 0.1`, and `BOOTSTRAP_ITERATIONS = 10000`.
 - Input validation checks required columns, numeric dtypes, and conservative SBP/DBP/HR ranges before analysis starts.
 - CI runs linting and tests on every push and pull request.
