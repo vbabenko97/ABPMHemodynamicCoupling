@@ -64,20 +64,20 @@ DISPLAY_MODEL_LABELS = {
 DISPLAY_RESULT_COLUMNS = {
     "participant_id": "ID учасника",
     "Train_N": "N у навчанні",
-    "DBP_Winner": "Найкраща модель ДАТ",
-    "DBP_Ref_MAE": "Референтний MAE ДАТ",
-    "DBP_Cognitive Task_N": "ДАТ Когнітивне навантаження N",
-    "DBP_Cognitive Task_MAE": "ДАТ Когнітивне навантаження MAE",
-    "DBP_Cognitive Task_DeltaBias": "ДАТ Когнітивне навантаження Зміщення",
-    "DBP_Cognitive Task_Anomaly": "ДАТ Когнітивне навантаження Аномалія",
-    "DBP_Physical Task_N": "ДАТ Фізичне навантаження N",
-    "DBP_Physical Task_MAE": "ДАТ Фізичне навантаження MAE",
-    "DBP_Physical Task_DeltaBias": "ДАТ Фізичне навантаження Зміщення",
-    "DBP_Physical Task_Anomaly": "ДАТ Фізичне навантаження Аномалія",
-    "DBP_Air Alert_N": "ДАТ Повітряна тривога N",
-    "DBP_Air Alert_MAE": "ДАТ Повітряна тривога MAE",
-    "DBP_Air Alert_DeltaBias": "ДАТ Повітряна тривога Зміщення",
-    "DBP_Air Alert_Anomaly": "ДАТ Повітряна тривога Аномалія",
+    "DBP_Winner": "Форма зв'язку ДАТ↔(САТ, ЧСС)",
+    "DBP_Ref_MAE": "Стабільність базового тонусу (MAE)",
+    "DBP_Cognitive Task_N": "Когнітивне навантаження: N",
+    "DBP_Cognitive Task_MAE": "Когнітивне навантаження: MAE",
+    "DBP_Cognitive Task_DeltaBias": "Когнітивне навантаження: зміщення",
+    "DBP_Cognitive Task_Anomaly": "Когнітивне навантаження: реактивність тонусу (%)",
+    "DBP_Physical Task_N": "Фізичне навантаження: N",
+    "DBP_Physical Task_MAE": "Фізичне навантаження: MAE",
+    "DBP_Physical Task_DeltaBias": "Фізичне навантаження: зміщення",
+    "DBP_Physical Task_Anomaly": "Фізичне навантаження: реактивність тонусу (%)",
+    "DBP_Air Alert_N": "Повітряна тривога: N",
+    "DBP_Air Alert_MAE": "Повітряна тривога: MAE",
+    "DBP_Air Alert_DeltaBias": "Повітряна тривога: зміщення",
+    "DBP_Air Alert_Anomaly": "Повітряна тривога: реактивність тонусу (%)",
 }
 
 SUMMARY_REPLACEMENTS = [
@@ -121,10 +121,10 @@ SUMMARY_CONDITIONS = [
 ]
 
 SUBGROUP_METRIC_LABELS = {
-    "DBP_Cognitive Task_MAE": "ДАТ: когнітивне навантаження — MAE",
-    "DBP_Physical Task_MAE": "ДАТ: фізичне навантаження — MAE",
-    "DBP_Cognitive Task_DeltaBias": "ДАТ: когнітивне навантаження — зміщення",
-    "DBP_Physical Task_DeltaBias": "ДАТ: фізичне навантаження — зміщення",
+    "DBP_Cognitive Task_MAE": "Когнітивне навантаження — MAE зв'язку",
+    "DBP_Physical Task_MAE": "Фізичне навантаження — MAE зв'язку",
+    "DBP_Cognitive Task_DeltaBias": "Когнітивне навантаження — зміщення залишків",
+    "DBP_Physical Task_DeltaBias": "Фізичне навантаження — зміщення залишків",
 }
 
 

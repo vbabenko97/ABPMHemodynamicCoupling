@@ -29,7 +29,7 @@ class Config:
     
     # Statistical settings
     FDR_ALPHA: float = 0.1
-    BOOTSTRAP_ITERATIONS: int = 10000
+    BOOTSTRAP_ITERATIONS: int = 5000
     
     # Responder thresholds
     RESPONDER_ANOMALY_THRESHOLD: float = 50.0  # %

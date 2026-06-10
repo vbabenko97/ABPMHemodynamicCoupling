@@ -17,16 +17,27 @@ from abpm_hemodynamic_coupling.web_pipeline import PipelineResults, WebPipeline
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Гемодинамічний аналіз даних добового моніторингу артеріального тиску",
+    page_title="Система оцінки тонусу периферичних артеріальних судин",
     page_icon=":anatomical_heart:",
     layout="wide",
 )
 
-st.title("Аналіз гемодинамічного поєднання в даних добового моніторингу артеріального тиску")
+st.title("Система оцінки тонусу периферичних артеріальних судин")
+st.caption("на основі даних добового моніторингу артеріального тиску (ДМАТ)")
+
+st.info(
+    "**Як система оцінює тонус.** Діастолічний артеріальний тиск (ДАТ) "
+    "формується переважно загальним периферичним судинним опором. Тому "
+    "стійкий зв'язок ДАТ ↔ (САТ, ЧСС) у межах доби є функціональним проявом "
+    "тонусу периферичних артеріальних судин. Система будує цей зв'язок "
+    "для кожного учасника, оцінює його **стабільність** у базовому стані та "
+    "**реактивність** під час когнітивного й фізичного навантажень."
+)
+
 st.markdown(
-    "Завантажте дані амбулаторного моніторингу артеріального тиску, "
-    "щоб запустити повний конвеєр аналізу на рівні окремих учасників "
-    "і всієї когорти."
+    "Завантажте дані ДМАТ, щоб отримати індивідуальний профіль тонусу: "
+    "стабільність базового зв'язку, реактивність під навантаженням та "
+    "бінарний флаг реактивного тонусу."
 )
 
 # ---------------------------------------------------------------------------
@@ -143,7 +154,7 @@ if "results" in st.session_state:
     col3.metric("Графіки", len(results.figures))
 
     tab_summary, tab_metrics, tab_figures = st.tabs(
-        ["Підсумок", "Метрики учасників", "Графіки"]
+        ["Підсумок", "Профіль тонусу по учасниках", "Графіки"]
     )
 
     # --- Summary tab ---
@@ -151,11 +162,21 @@ if "results" in st.session_state:
         st.subheader("Огляд вимірювань за станами")
         st.dataframe(results.demographics_table, use_container_width=True, hide_index=True)
 
-        st.subheader("Підсумок результатів")
-        st.markdown("**Найкращі моделі для ДАТ**")
+        st.subheader("Оцінка тонусу по когорті")
+
+        st.markdown("**Форма зв'язку ДАТ ↔ (САТ, ЧСС) у базовому стані**")
+        st.caption(
+            "Для кожного учасника обирається модель, яка найкраще описує ДАТ як функцію "
+            "САТ і ЧСС. Розмаїття виграшних форм вказує, що структура тонусу "
+            "неоднорідна між учасниками."
+        )
         st.dataframe(results.summary_view.model_counts, use_container_width=True, hide_index=True)
 
-        st.markdown("**MAE на базовому інтервалі**")
+        st.markdown("**Стабільність базового зв'язку (MAE)**")
+        st.caption(
+            "Менший MAE — тісніший зв'язок ДАТ ↔ (САТ, ЧСС), тобто стабільніший "
+            "базовий тонус. Значення > 10 мм рт. ст. свідчать про слабкий зв'язок."
+        )
         baseline = results.summary_view.baseline_stats
         baseline_cols = st.columns(4)
         baseline_cols[0].metric("Учасники (n)", baseline["n"])
@@ -169,12 +190,23 @@ if "results" in st.session_state:
             f"{baseline['min']:.2f} – {baseline['max']:.2f} мм рт. ст.",
         )
 
-        st.markdown("**Порівняння за умовами**")
+        st.markdown("**Реактивність тонусу за умовами**")
+        st.caption(
+            "Зростання MAE та зміщення залишків під час когнітивного чи фізичного "
+            "навантаження відображає порушення базового зв'язку ДАТ ↔ (САТ, ЧСС) — "
+            "тобто реактивну зміну тонусу."
+        )
         st.dataframe(results.summary_view.condition_stats, use_container_width=True, hide_index=True)
 
         st.markdown(
-            f"**Підгруповий аналіз**: респонденти `n={results.summary_view.n_responders}`, "
+            f"**Флаг реактивного тонусу** (когнітивне навантаження): "
+            f"респонденти `n={results.summary_view.n_responders}`, "
             f"нереспонденти `n={results.summary_view.n_non_responders}`"
+        )
+        st.caption(
+            "Респондент — учасник, у якого зв'язок ДАТ ↔ (САТ, ЧСС) значимо "
+            "порушується під когнітивним навантаженням (зростання MAE понад 50% "
+            "або зміщення залишків понад 2 мм рт. ст.)."
         )
         st.dataframe(results.summary_view.subgroup_stats, use_container_width=True, hide_index=True)
 
@@ -183,7 +215,12 @@ if "results" in st.session_state:
 
     # --- Subject metrics tab ---
     with tab_metrics:
-        st.subheader("Метрики по кожному учаснику")
+        st.subheader("Індивідуальний профіль тонусу")
+        st.caption(
+            "Для кожного учасника: виграшна форма зв'язку, стабільність базового "
+            "тонусу (референтний MAE) та показники реактивності під навантаженнями "
+            "(MAE, зміщення, аномалія у % відносно базового MAE)."
+        )
         display_pipeline = WebPipeline()
         st.dataframe(
             display_pipeline.localize_subject_metrics(results.subject_metrics),
@@ -193,7 +230,7 @@ if "results" in st.session_state:
         st.download_button(
             "Завантажити CSV",
             results.subject_metrics.to_csv(index=False),
-            file_name="metryky_po_uchasnykakh.csv",
+            file_name="profil_tonusu_po_uchasnykakh.csv",
             mime="text/csv",
         )
 
