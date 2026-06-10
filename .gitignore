@@ -35,13 +35,17 @@ tmp/
 # Any nested data/ folders elsewhere also hold patient copies
 **/data/
 
+# Local-only analysis exploration — not version-controlled (README is the only exception)
+/analysis/*
+!/analysis/README.md
+
 # Generated research outputs
 artifacts/
 /results/thesis/
 
 # Private manuscripts and presentation drafts (local-only)
 /docs/ieee_elnano/
-/docs/thesis/
+/docs/bshka/
 
 # Local analysis and presentation exports
 /presentation.pdf
